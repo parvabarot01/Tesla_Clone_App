@@ -1,12 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { Reveal } from "@/components/shared/Reveal";
 import { ButtonLink } from "@/components/ui/button-link";
 import { ROUTES } from "@/constants/routes";
 import type { Vehicle } from "@/types";
 
 type VehicleCardProps = {
   vehicle: Vehicle;
+  index?: number;
 };
 
 type SpecItemProps = {
@@ -25,16 +27,20 @@ function SpecItem({ label, value }: SpecItemProps) {
   );
 }
 
-export function VehicleCard({ vehicle }: VehicleCardProps) {
+export function VehicleCard({ vehicle, index = 0 }: VehicleCardProps) {
   return (
-    <article className="group overflow-hidden rounded-[2rem] border border-black/6 bg-white shadow-[0_18px_48px_rgba(17,17,17,0.08)] transition-transform duration-300 hover:-translate-y-1">
+    <Reveal
+      as="article"
+      delay={Math.min(index * 0.05, 0.18)}
+      className="group overflow-hidden rounded-[2rem] border border-black/6 bg-white shadow-[0_18px_48px_rgba(17,17,17,0.08)] transition-[transform,box-shadow,border-color] duration-300 ease-out motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-[0_24px_54px_rgba(17,17,17,0.12)]"
+    >
       <div className="relative aspect-[16/10] overflow-hidden bg-neutral-100">
         <Image
           src={vehicle.image}
           alt={`${vehicle.name} vehicle placeholder image`}
           fill
           sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          className="object-cover transition-transform duration-700 ease-out motion-safe:group-hover:scale-[1.03]"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/5 to-transparent" />
         <div className="absolute left-5 top-5">
@@ -58,7 +64,7 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
 
             <Link
               href={ROUTES.vehicleDetails(vehicle.slug)}
-              className="text-sm font-medium text-neutral-500 transition-colors hover:text-neutral-950"
+              className="text-sm font-medium text-neutral-500 transition-[color,transform] duration-200 hover:text-neutral-950 motion-safe:hover:translate-x-0.5"
             >
               Specs
             </Link>
@@ -79,7 +85,7 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
           <ButtonLink
             href={ROUTES.vehicleDetails(vehicle.slug)}
             size="lg"
-            className="h-11 flex-1 rounded-full bg-neutral-950 px-6 text-sm font-semibold text-white hover:bg-neutral-800"
+            className="h-11 flex-1 rounded-full bg-neutral-950 px-6 text-sm font-semibold text-white transition-[background-color,transform] duration-200 hover:bg-neutral-800 motion-safe:hover:-translate-y-px"
           >
             View Details
           </ButtonLink>
@@ -87,12 +93,12 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
             href={ROUTES.order(vehicle.slug)}
             size="lg"
             variant="outline"
-            className="h-11 flex-1 rounded-full px-6 text-sm font-semibold"
+            className="h-11 flex-1 rounded-full px-6 text-sm font-semibold transition-[background-color,border-color,transform] duration-200 motion-safe:hover:-translate-y-px"
           >
             Order Now
           </ButtonLink>
         </div>
       </div>
-    </article>
+    </Reveal>
   );
 }

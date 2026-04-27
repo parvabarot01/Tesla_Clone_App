@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button-link";
+import { StaggerGroup } from "@/components/shared/StaggerGroup";
 import { resolveBackgroundImage } from "@/lib/utils";
 import type { PromoCard } from "@/types";
 
@@ -15,11 +16,15 @@ export function PromoCards({ cards }: PromoCardsProps) {
           Promotional cards
         </h2>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <StaggerGroup
+          className="grid gap-6 lg:grid-cols-2"
+          delayChildren={0.02}
+          staggerChildren={0.08}
+        >
           {cards.map((card) => (
             <article
               key={card.title}
-              className="grid overflow-hidden rounded-[2rem] border border-black/6 bg-neutral-100 shadow-[0_12px_36px_rgba(17,17,17,0.08)] transition-transform duration-300 hover:-translate-y-1 md:grid-cols-[minmax(0,1fr)_280px]"
+              className="group grid overflow-hidden rounded-[2rem] border border-black/6 bg-neutral-100 shadow-[0_12px_36px_rgba(17,17,17,0.08)] transition-[transform,box-shadow,border-color] duration-300 ease-out motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-[0_18px_42px_rgba(17,17,17,0.12)] md:grid-cols-[minmax(0,1fr)_280px]"
             >
               <div className="flex flex-col justify-between gap-8 px-6 py-7 sm:px-8 sm:py-8">
                 <div className="space-y-3">
@@ -55,7 +60,7 @@ export function PromoCards({ cards }: PromoCardsProps) {
               <div
                 role="img"
                 aria-label={`${card.title} placeholder image`}
-                className="min-h-[240px] bg-neutral-300 md:min-h-full"
+                className="min-h-[240px] bg-neutral-300 transition-transform duration-700 ease-out motion-safe:group-hover:scale-[1.02] md:min-h-full"
                 style={{
                   backgroundImage: resolveBackgroundImage(
                     card.image,
@@ -67,7 +72,7 @@ export function PromoCards({ cards }: PromoCardsProps) {
               />
             </article>
           ))}
-        </div>
+        </StaggerGroup>
       </div>
     </section>
   );

@@ -2,6 +2,7 @@ import { EnergySection } from "@/components/home/EnergySection";
 import { FeatureGrid } from "@/components/home/FeatureGrid";
 import { HeroSection } from "@/components/home/HeroSection";
 import { PromoCards } from "@/components/home/PromoCards";
+import { PageTransition } from "@/components/shared/PageTransition";
 import { energyCards, featureCards, heroContent, promoCards } from "@/data/home";
 
 export const metadata = {
@@ -10,11 +11,11 @@ export const metadata = {
 
 export default function Home() {
   return (
-    <>
+    <PageTransition>
       <HeroSection content={heroContent} />
       <PromoCards cards={promoCards} />
       <FeatureGrid cards={featureCards} />
       <EnergySection cards={energyCards} />
-    </>
+    </PageTransition>
   );
 }

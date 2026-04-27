@@ -1,3 +1,5 @@
+import { Reveal } from "@/components/shared/Reveal";
+import { StaggerGroup } from "@/components/shared/StaggerGroup";
 import { Button } from "@/components/ui/button";
 import { resolveBackgroundImage } from "@/lib/utils";
 
@@ -33,20 +35,27 @@ export function PageHero({
 
       <div className="relative z-10 flex min-h-[calc(100svh-3.5rem)] items-center justify-center px-6">
         <div className="mx-auto flex w-full max-w-5xl flex-col items-center text-center">
-          <div className="max-w-3xl space-y-4">
+          <StaggerGroup
+            className="max-w-3xl space-y-4"
+            delayChildren={0.05}
+            staggerChildren={0.07}
+          >
             <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-6xl">
               {title}
             </h1>
             <p className="text-base font-medium text-white/85 sm:text-lg lg:text-xl">
               {subtitle}
             </p>
-          </div>
+          </StaggerGroup>
 
-          <div className="mt-8 flex w-full flex-col items-center gap-3 sm:flex-row sm:justify-center">
+          <Reveal
+            delay={0.14}
+            className="mt-8 flex w-full flex-col items-center gap-3 sm:flex-row sm:justify-center"
+          >
             <Button
               type="button"
               size="lg"
-              className="h-11 min-w-[220px] rounded-full bg-white px-8 text-sm font-semibold text-neutral-950 hover:bg-white/90"
+              className="h-11 min-w-[220px] rounded-full bg-white px-8 text-sm font-semibold text-neutral-950 transition-[background-color,transform] duration-200 hover:bg-white/90 motion-safe:hover:-translate-y-px"
             >
               {primaryButtonText}
             </Button>
@@ -55,12 +64,12 @@ export function PageHero({
                 type="button"
                 size="lg"
                 variant="outline"
-                className="h-11 min-w-[220px] rounded-full border-white/25 bg-black/25 px-8 text-sm font-semibold text-white backdrop-blur-sm hover:bg-black/35 hover:text-white"
+                className="h-11 min-w-[220px] rounded-full border-white/25 bg-black/25 px-8 text-sm font-semibold text-white backdrop-blur-sm transition-[background-color,color,transform] duration-200 hover:bg-black/35 hover:text-white motion-safe:hover:-translate-y-px"
               >
                 {secondaryButtonText}
               </Button>
             ) : null}
-          </div>
+          </Reveal>
         </div>
       </div>
     </section>

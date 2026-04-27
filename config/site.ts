@@ -2,7 +2,7 @@ import { ROUTES } from "@/constants/routes";
 import type { NavItem } from "@/types";
 
 export const siteConfig = {
-  name: "Tesla Clone V0",
+  name: "Tesla Clone",
   description: "A scalable Tesla-inspired frontend built with Next.js.",
   url: "http://localhost:3000",
   creator: "Your Name",

@@ -1,5 +1,7 @@
 "use client";
 
+import { CheckCircle2 } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -102,6 +104,7 @@ function formatDate(dateValue: string) {
 }
 
 export function DemoDriveForm({ vehicle }: DemoDriveFormProps) {
+  const prefersReducedMotion = useReducedMotion();
   const [formState, setFormState] = useState<DemoDriveState>(initialFormState);
   const [confirmation, setConfirmation] = useState<ConfirmationSummary | null>(
     null
@@ -138,8 +141,8 @@ export function DemoDriveForm({ vehicle }: DemoDriveFormProps) {
           Schedule your {vehicle.name}
         </h2>
         <p className="mt-3 text-sm leading-7 text-neutral-600 sm:text-base">
-          This is a frontend-only mock form for V0.1. Choose a date and time
-          preference and we&apos;ll store your request locally in the page state.
+          This is a frontend-only mock form. Choose a date and time preference
+          and we&apos;ll store your request locally in the page state.
         </p>
       </div>
 
@@ -164,7 +167,7 @@ export function DemoDriveForm({ vehicle }: DemoDriveFormProps) {
                 onChange={(event) =>
                   handleFieldChange(field.id, event.target.value)
                 }
-                className="h-12 w-full rounded-[1.2rem] border border-black/8 bg-white px-4 text-sm text-neutral-950 outline-none transition focus:border-neutral-950 focus:ring-2 focus:ring-black/5"
+                className="h-12 w-full rounded-[1.2rem] border border-black/8 bg-white px-4 text-sm text-neutral-950 outline-none transition-[border-color,box-shadow,background-color] duration-200 focus:border-neutral-950 focus:bg-neutral-50 focus:ring-4 focus:ring-black/6"
               />
             </div>
           ))}
@@ -187,10 +190,10 @@ export function DemoDriveForm({ vehicle }: DemoDriveFormProps) {
                     handleFieldChange("preferredTimeSlot", slot.label)
                   }
                   className={cn(
-                    "rounded-[1.25rem] border px-4 py-4 text-sm font-semibold transition-all",
+                    "rounded-[1.25rem] border px-4 py-4 text-sm font-semibold transition-[transform,box-shadow,border-color,background-color,color] duration-200 ease-out focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-black/6",
                     isSelected
-                      ? "border-neutral-950 bg-neutral-950 text-white shadow-[0_16px_34px_rgba(17,17,17,0.16)]"
-                      : "border-black/8 bg-white text-neutral-950 hover:border-black/16 hover:bg-neutral-50"
+                      ? "border-neutral-950 bg-neutral-950 text-white shadow-[0_18px_40px_rgba(17,17,17,0.18)]"
+                      : "border-black/8 bg-white text-neutral-950 hover:border-black/16 hover:bg-neutral-50 hover:shadow-[0_14px_32px_rgba(17,17,17,0.06)] motion-safe:hover:-translate-y-px"
                   )}
                 >
                   {slot.label}
@@ -200,60 +203,78 @@ export function DemoDriveForm({ vehicle }: DemoDriveFormProps) {
           </div>
         </fieldset>
 
-        {confirmation ? (
-          <section
-            aria-labelledby="demo-drive-confirmation-heading"
-            className="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 p-5 sm:p-6"
-          >
-            <h3
-              id="demo-drive-confirmation-heading"
-              className="text-lg font-semibold tracking-tight text-emerald-900"
+        <AnimatePresence>
+          {confirmation ? (
+            <motion.section
+              key="demo-drive-confirmation"
+              aria-labelledby="demo-drive-confirmation-heading"
+              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 12, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -8, scale: 0.98 }}
+              transition={{ duration: 0.22 }}
+              className="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 p-5 shadow-[0_16px_34px_rgba(5,150,105,0.08)] sm:p-6"
             >
-              Your demo drive request has been saved locally for V0.1.
-            </h3>
+              <div className="flex items-start gap-3">
+                <span className="mt-0.5 inline-flex rounded-full bg-emerald-100 p-2 text-emerald-700">
+                  <CheckCircle2 className="h-5 w-5" />
+                </span>
+                <div>
+                  <h3
+                    id="demo-drive-confirmation-heading"
+                    className="text-lg font-semibold tracking-tight text-emerald-900"
+                  >
+                    Your demo drive request has been saved locally.
+                  </h3>
+                  <p className="mt-2 text-sm leading-6 text-emerald-800">
+                    Your preferred vehicle, date, and time are stored in this
+                    mock frontend flow for the current session.
+                  </p>
+                </div>
+              </div>
 
-            <dl className="mt-5 grid gap-4 sm:grid-cols-2">
-              <div>
-                <dt className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
-                  Vehicle
-                </dt>
-                <dd className="mt-2 text-sm font-medium text-emerald-950 sm:text-base">
-                  {confirmation.vehicleName}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
-                  Preferred date
-                </dt>
-                <dd className="mt-2 text-sm font-medium text-emerald-950 sm:text-base">
-                  {formatDate(confirmation.preferredDate)}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
-                  Preferred time slot
-                </dt>
-                <dd className="mt-2 text-sm font-medium text-emerald-950 sm:text-base">
-                  {confirmation.preferredTimeSlot}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
-                  ZIP code or city
-                </dt>
-                <dd className="mt-2 text-sm font-medium text-emerald-950 sm:text-base">
-                  {confirmation.location}
-                </dd>
-              </div>
-            </dl>
-          </section>
-        ) : null}
+              <dl className="mt-5 grid gap-4 sm:grid-cols-2">
+                <div>
+                  <dt className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
+                    Vehicle
+                  </dt>
+                  <dd className="mt-2 text-sm font-medium text-emerald-950 sm:text-base">
+                    {confirmation.vehicleName}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
+                    Preferred date
+                  </dt>
+                  <dd className="mt-2 text-sm font-medium text-emerald-950 sm:text-base">
+                    {formatDate(confirmation.preferredDate)}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
+                    Preferred time slot
+                  </dt>
+                  <dd className="mt-2 text-sm font-medium text-emerald-950 sm:text-base">
+                    {confirmation.preferredTimeSlot}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
+                    ZIP code or city
+                  </dt>
+                  <dd className="mt-2 text-sm font-medium text-emerald-950 sm:text-base">
+                    {confirmation.location}
+                  </dd>
+                </div>
+              </dl>
+            </motion.section>
+          ) : null}
+        </AnimatePresence>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Button
             type="submit"
             size="lg"
-            className="h-11 rounded-full px-6 text-sm font-semibold"
+            className="h-11 rounded-full px-6 text-sm font-semibold transition-transform duration-200 motion-safe:hover:-translate-y-px"
           >
             Schedule Demo Drive
           </Button>
@@ -261,7 +282,7 @@ export function DemoDriveForm({ vehicle }: DemoDriveFormProps) {
             href={ROUTES.vehicleDetails(vehicle.slug)}
             size="lg"
             variant="outline"
-            className="h-11 rounded-full px-6 text-sm font-semibold"
+            className="h-11 rounded-full px-6 text-sm font-semibold transition-[background-color,border-color,transform] duration-200 motion-safe:hover:-translate-y-px"
           >
             Back to Vehicle Details
           </ButtonLink>

@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button-link";
+import { StaggerGroup } from "@/components/shared/StaggerGroup";
 import { resolveBackgroundImage } from "@/lib/utils";
 import type { FeatureCard } from "@/types";
 
@@ -15,15 +16,19 @@ export function FeatureGrid({ cards }: FeatureGridProps) {
           Featured highlights
         </h2>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <StaggerGroup
+          className="grid gap-6 lg:grid-cols-2"
+          delayChildren={0.03}
+          staggerChildren={0.08}
+        >
           {cards.map((card) => (
             <article
               key={card.title}
-              className="relative isolate flex min-h-[440px] items-end overflow-hidden rounded-[2rem] border border-black/6 bg-neutral-900 shadow-[0_16px_48px_rgba(17,17,17,0.12)] transition-transform duration-300 hover:-translate-y-1"
+              className="group relative isolate flex min-h-[440px] items-end overflow-hidden rounded-[2rem] border border-black/6 bg-neutral-900 shadow-[0_16px_48px_rgba(17,17,17,0.12)] transition-[transform,box-shadow] duration-300 ease-out motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-[0_22px_56px_rgba(17,17,17,0.16)]"
             >
               <div
                 aria-hidden="true"
-                className="absolute inset-0"
+                className="absolute inset-0 transition-transform duration-700 ease-out motion-safe:group-hover:scale-[1.02]"
                 style={{
                   backgroundImage: resolveBackgroundImage(
                     card.image,
@@ -65,7 +70,7 @@ export function FeatureGrid({ cards }: FeatureGridProps) {
               </div>
             </article>
           ))}
-        </div>
+        </StaggerGroup>
       </div>
     </section>
   );

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { OrderConfigurator } from "@/components/order/OrderConfigurator";
+import { PageTransition } from "@/components/shared/PageTransition";
 import { siteConfig } from "@/config/site";
 import { vehicleService } from "@/services/vehicleService";
 
@@ -44,5 +45,9 @@ export default async function OrderPage({ params }: OrderPageProps) {
     notFound();
   }
 
-  return <OrderConfigurator vehicle={vehicle} />;
+  return (
+    <PageTransition>
+      <OrderConfigurator vehicle={vehicle} />
+    </PageTransition>
+  );
 }

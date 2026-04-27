@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button-link";
+import { StaggerGroup } from "@/components/shared/StaggerGroup";
 import { resolveBackgroundImage } from "@/lib/utils";
 import type { EnergyCard } from "@/types";
 
@@ -19,16 +20,20 @@ export function EnergySection({ cards }: EnergySectionProps) {
           Energy products
         </h2>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <StaggerGroup
+          className="grid gap-6 lg:grid-cols-2"
+          delayChildren={0.03}
+          staggerChildren={0.09}
+        >
           {cards.map((card) => (
             <article
               key={card.title}
-              className="relative isolate flex min-h-[520px] items-end overflow-hidden rounded-[2rem] border border-black/6 bg-neutral-900 shadow-[0_20px_54px_rgba(17,17,17,0.14)] transition-transform duration-300 hover:-translate-y-1"
+              className="group relative isolate flex min-h-[520px] items-end overflow-hidden rounded-[2rem] border border-black/6 bg-neutral-900 shadow-[0_20px_54px_rgba(17,17,17,0.14)] transition-[transform,box-shadow] duration-300 ease-out motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-[0_24px_60px_rgba(17,17,17,0.18)]"
             >
               <div
                 role="img"
                 aria-label={`${card.title} placeholder image`}
-                className="absolute inset-0"
+                className="absolute inset-0 transition-transform duration-700 ease-out motion-safe:group-hover:scale-[1.02]"
                 style={{
                   backgroundImage: resolveBackgroundImage(
                     card.image,
@@ -90,7 +95,7 @@ export function EnergySection({ cards }: EnergySectionProps) {
               </div>
             </article>
           ))}
-        </div>
+        </StaggerGroup>
       </div>
     </section>
   );

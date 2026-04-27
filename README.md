@@ -12,45 +12,34 @@ Real Tesla assets are not used. Image references are local placeholder paths und
 - shadcn/ui
 - Lucide React
 - Framer Motion
-- Static local data for V0, V0.1, and V0.2
+- Static local data for V0, V0.1, V0.2, and V0.3
 
 ## Current Version
 
-- Current version: V0.2
-- Status: Frontend architecture complete and backend-ready
+- Current version: V0.3
+- Status: Frontend UX polish and visual consistency work are complete for this phase.
 - Backend: Not implemented yet
 - Deployment: Not implemented yet
 
-## Features Completed
+## Progress
 
 V0:
-- Fixed Tesla-inspired navbar
-- Homepage hero section
-- Promo cards
-- Feature grid
-- Energy section
-- Responsive layout
+- Core Tesla-inspired homepage and responsive shell.
 
 V0.1:
-- Multi-page frontend routes
-- Vehicle overview page
-- Dynamic vehicle detail pages
-- Mock order/configurator flow
-- Mock demo drive form flow
+- Multi-page vehicle, order, and demo-drive frontend flows.
 
 V0.2:
-- Vehicle service layer
-- Shared loading states
-- Shared error states
-- Shared empty states
-- Centralized site config
-- Centralized route constants
-- Centralized order options
-- Centralized demo drive time slots
-- Shared UI components:
-  - SectionHeader
-  - SpecGrid
-  - CtaGroup
+- Shared services, constants, and reusable UI states/components.
+
+V0.3:
+- Shared motion system
+- Homepage transition polish
+- Scroll-aware navbar behavior
+- Animated mobile menu
+- Vehicle, detail, configurator, and demo-drive polish
+- Energy, charging, discover, and shop page polish
+- Final visual and motion consistency pass
 
 ## Project Structure
 
@@ -89,6 +78,7 @@ app/
 components/
   layout/
     Navbar.tsx
+    MobileMenu.tsx
   home/
     HeroSection.tsx
     PromoCards.tsx
@@ -109,6 +99,9 @@ components/
     LoadingSection.tsx
     EmptyState.tsx
     ErrorState.tsx
+    Reveal.tsx
+    StaggerGroup.tsx
+    PageTransition.tsx
   ui/
     button.tsx
 
@@ -131,6 +124,7 @@ types/
   index.ts
 
 lib/
+  motion.ts
   utils.ts
 ```
 
@@ -173,9 +167,8 @@ This means a later backend can replace the service internals while the route pag
 
 ## Future Roadmap
 
-- V0.3: UX transitions and frontend polish
-- V0.4: Advanced configurator and local persistence
-- V0.5: Mock API layer and validation
+- V0.4: Advanced configurator, stronger UX depth, and local persistence
+- V0.5: Mock API layer, validation, and backend integration prep
 - V1: Backend, database, auth, payments, testing, and deployment
 
 ## Disclaimer
@@ -184,7 +177,4 @@ This is a Tesla-inspired educational project. It is not affiliated with Tesla. P
 
 ## Development Notes
 
-This project is being built incrementally:
-- V0 established the homepage.
-- V0.1 added multi-page vehicle flows.
-- V0.2 cleaned the architecture and prepared the frontend for backend integration.
+V0.3 completed the frontend UX polish pass with shared motion, improved product-flow interactions, and stronger visual consistency across the app.

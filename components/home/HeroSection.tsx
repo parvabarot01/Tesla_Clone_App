@@ -1,8 +1,5 @@
-"use client";
-
-import { motion } from "framer-motion";
-
 import { ActionButton } from "@/components/shared/ActionButton";
+import { StaggerGroup } from "@/components/shared/StaggerGroup";
 import { siteConfig } from "@/config/site";
 import { resolveBackgroundImage } from "@/lib/utils";
 import type { HeroContent } from "@/types";
@@ -28,13 +25,12 @@ export function HeroSection({ content }: HeroSectionProps) {
       />
 
       <div className="relative z-10 flex min-h-[calc(100svh-6rem)] items-start justify-center md:min-h-[calc(100svh-3.5rem)]">
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.65, ease: "easeOut" }}
-          className="flex w-full max-w-5xl flex-col items-center px-6 pb-16 pt-20 text-center sm:pt-24 md:pt-28"
-        >
-          <div className="max-w-3xl space-y-4">
+        <div className="flex w-full max-w-5xl flex-col items-center px-6 pb-16 pt-20 text-center sm:pt-24 md:pt-28">
+          <StaggerGroup
+            className="max-w-3xl space-y-4"
+            delayChildren={0.05}
+            staggerChildren={0.07}
+          >
             <p className="text-sm font-medium uppercase tracking-[0.3em] text-white/70">
               {content.eyebrow ?? siteConfig.name}
             </p>
@@ -49,9 +45,13 @@ export function HeroSection({ content }: HeroSectionProps) {
                 {content.description}
               </p>
             ) : null}
-          </div>
+          </StaggerGroup>
 
-          <div className="mt-8 flex w-full flex-col items-center gap-3 sm:flex-row sm:justify-center">
+          <StaggerGroup
+            className="mt-8 flex w-full flex-col items-center gap-3 sm:flex-row sm:justify-center"
+            delayChildren={0.16}
+            staggerChildren={0.06}
+          >
             <ActionButton
               action={content.primaryCta}
               size="lg"
@@ -63,8 +63,8 @@ export function HeroSection({ content }: HeroSectionProps) {
               variant="outline"
               className="h-11 min-w-[220px] rounded-full border-white/25 bg-black/25 px-8 text-sm font-semibold text-white backdrop-blur-sm hover:bg-black/35 hover:text-white"
             />
-          </div>
-        </motion.div>
+          </StaggerGroup>
+        </div>
       </div>
     </section>
   );

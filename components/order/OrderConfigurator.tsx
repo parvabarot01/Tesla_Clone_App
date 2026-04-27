@@ -1,13 +1,15 @@
 "use client";
 
 import Image from "next/image";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useMemo, useState } from "react";
 
+import { Reveal } from "@/components/shared/Reveal";
 import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button-link";
 import {
+  getPaintOptionsForVehicle,
   interiorOptions,
-  paintOptions,
   wheelOptions,
   type OrderOption,
 } from "@/constants/orderOptions";
@@ -70,10 +72,10 @@ function OptionGroup({
               aria-pressed={isSelected}
               onClick={() => onSelect(option.id)}
               className={cn(
-                "flex w-full items-center justify-between rounded-[1.4rem] border px-4 py-4 text-left transition-all",
+                "group flex w-full items-center justify-between rounded-[1.4rem] border px-4 py-4 text-left transition-[transform,box-shadow,border-color,background-color,color] duration-200 ease-out focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-black/6",
                 isSelected
-                  ? "border-neutral-950 bg-neutral-950 text-white shadow-[0_16px_34px_rgba(17,17,17,0.16)]"
-                  : "border-black/8 bg-white text-neutral-950 hover:border-black/16 hover:bg-neutral-50"
+                  ? "border-neutral-950 bg-neutral-950 text-white shadow-[0_18px_40px_rgba(17,17,17,0.18)]"
+                  : "border-black/8 bg-white text-neutral-950 hover:border-black/16 hover:bg-neutral-50 hover:shadow-[0_14px_32px_rgba(17,17,17,0.06)] motion-safe:hover:-translate-y-px"
               )}
             >
               <span className="flex flex-col gap-1">
@@ -89,8 +91,19 @@ function OptionGroup({
                   {name}
                 </span>
               </span>
-              <span className="text-sm font-semibold sm:text-base">
-                {formatCurrency(option.price)}
+              <span className="flex items-center gap-3">
+                <span className="text-sm font-semibold sm:text-base">
+                  {formatCurrency(option.price)}
+                </span>
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "size-3 rounded-full border transition-colors duration-200",
+                    isSelected
+                      ? "border-white bg-white shadow-[0_0_0_4px_rgba(255,255,255,0.14)]"
+                      : "border-neutral-300 bg-transparent group-hover:border-neutral-400"
+                  )}
+                />
               </span>
             </button>
           );
@@ -105,13 +118,21 @@ type OrderConfiguratorProps = {
 };
 
 export function OrderConfigurator({ vehicle }: OrderConfiguratorProps) {
+  const prefersReducedMotion = useReducedMotion();
   const [selectedPaintId, setSelectedPaintId] = useState("");
   const [selectedWheelsId, setSelectedWheelsId] = useState(wheelOptions[0].id);
   const [selectedInteriorId, setSelectedInteriorId] = useState(
     interiorOptions[0].id
   );
 
-  const basePrice = useMemo(() => parsePrice(vehicle.startingPrice), [vehicle.startingPrice]);
+  const paintOptions = useMemo(
+    () => getPaintOptionsForVehicle(vehicle.slug),
+    [vehicle.slug]
+  );
+  const basePrice = useMemo(
+    () => parsePrice(vehicle.startingPrice),
+    [vehicle.startingPrice]
+  );
   const selectedPaint = getSelectedOption(paintOptions, selectedPaintId);
   const selectedWheels = getSelectedOption(wheelOptions, selectedWheelsId);
   const selectedInterior = getSelectedOption(interiorOptions, selectedInteriorId);
@@ -125,12 +146,12 @@ export function OrderConfigurator({ vehicle }: OrderConfiguratorProps) {
   return (
     <section className="bg-neutral-50 py-10 sm:py-14">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <Reveal className="mb-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <ButtonLink
             href={ROUTES.vehicleDetails(vehicle.slug)}
             size="lg"
             variant="outline"
-            className="h-11 rounded-full px-6 text-sm font-semibold"
+            className="h-11 rounded-full px-6 text-sm font-semibold transition-[background-color,border-color,transform] duration-200 motion-safe:hover:-translate-y-px"
           >
             Back to Vehicle Details
           </ButtonLink>
@@ -138,27 +159,47 @@ export function OrderConfigurator({ vehicle }: OrderConfiguratorProps) {
             href={ROUTES.vehicles}
             size="lg"
             variant="outline"
-            className="h-11 rounded-full px-6 text-sm font-semibold"
+            className="h-11 rounded-full px-6 text-sm font-semibold transition-[background-color,border-color,transform] duration-200 motion-safe:hover:-translate-y-px"
           >
             Back to Vehicles
           </ButtonLink>
-        </div>
+        </Reveal>
 
         <div className="grid gap-6 lg:grid-cols-[1.08fr_0.92fr] lg:items-start">
-          <article className="overflow-hidden rounded-[2rem] border border-black/6 bg-white shadow-[0_20px_50px_rgba(17,17,17,0.08)]">
+          <Reveal as="article" className="overflow-hidden rounded-[2rem] border border-black/6 bg-white shadow-[0_20px_50px_rgba(17,17,17,0.08)]">
             <div className="relative aspect-[5/4] overflow-hidden bg-neutral-100">
-              <Image
-                src={previewImage}
-                alt={`${vehicle.name} preview in ${selectedPaint.label}`}
-                fill
-                sizes="(min-width: 1024px) 50vw, 100vw"
-                className="object-cover"
-              />
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={previewImage}
+                  initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0.72, scale: 1.015 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 1.02 }}
+                  transition={{ duration: prefersReducedMotion ? 0.12 : 0.24, ease: "easeOut" }}
+                  className="absolute inset-0"
+                >
+                  <Image
+                    src={previewImage}
+                    alt={`${vehicle.name} preview in ${selectedPaint.label}`}
+                    fill
+                    sizes="(min-width: 1024px) 50vw, 100vw"
+                    className="object-cover"
+                  />
+                </motion.div>
+              </AnimatePresence>
               <div className="absolute inset-0 bg-gradient-to-t from-black/32 via-black/6 to-transparent" />
               <div className="absolute left-5 top-5">
-                <span className="rounded-full border border-white/18 bg-black/28 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white backdrop-blur-sm">
-                  {selectedPaint.label}
-                </span>
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={selectedPaint.id}
+                    initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
+                    transition={{ duration: 0.2 }}
+                    className="inline-flex rounded-full border border-white/18 bg-black/28 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white backdrop-blur-sm"
+                  >
+                    {selectedPaint.label}
+                  </motion.span>
+                </AnimatePresence>
               </div>
             </div>
 
@@ -177,7 +218,7 @@ export function OrderConfigurator({ vehicle }: OrderConfiguratorProps) {
               </p>
 
               <dl className="grid gap-3 pt-2 sm:grid-cols-3">
-                <div className="rounded-[1.35rem] bg-neutral-50 px-4 py-4">
+                <div className="rounded-[1.35rem] bg-neutral-50 px-4 py-4 transition-[background-color,transform] duration-200 ease-out motion-safe:hover:-translate-y-px">
                   <dt className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
                     Range
                   </dt>
@@ -185,7 +226,7 @@ export function OrderConfigurator({ vehicle }: OrderConfiguratorProps) {
                     {vehicle.range}
                   </dd>
                 </div>
-                <div className="rounded-[1.35rem] bg-neutral-50 px-4 py-4">
+                <div className="rounded-[1.35rem] bg-neutral-50 px-4 py-4 transition-[background-color,transform] duration-200 ease-out motion-safe:hover:-translate-y-px">
                   <dt className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
                     Top Speed
                   </dt>
@@ -193,7 +234,7 @@ export function OrderConfigurator({ vehicle }: OrderConfiguratorProps) {
                     {vehicle.topSpeed}
                   </dd>
                 </div>
-                <div className="rounded-[1.35rem] bg-neutral-50 px-4 py-4">
+                <div className="rounded-[1.35rem] bg-neutral-50 px-4 py-4 transition-[background-color,transform] duration-200 ease-out motion-safe:hover:-translate-y-px">
                   <dt className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
                     0-60 mph
                   </dt>
@@ -203,9 +244,13 @@ export function OrderConfigurator({ vehicle }: OrderConfiguratorProps) {
                 </div>
               </dl>
             </div>
-          </article>
+          </Reveal>
 
-          <aside className="overflow-hidden rounded-[2rem] border border-black/6 bg-white shadow-[0_20px_50px_rgba(17,17,17,0.08)]">
+          <Reveal
+            as="article"
+            delay={0.08}
+            className="overflow-hidden rounded-[2rem] border border-black/6 bg-white shadow-[0_20px_50px_rgba(17,17,17,0.08)]"
+          >
             <div className="border-b border-black/6 px-6 py-6 sm:px-8">
               <p className="text-sm font-semibold uppercase tracking-[0.28em] text-neutral-500">
                 Configure
@@ -287,9 +332,18 @@ export function OrderConfigurator({ vehicle }: OrderConfiguratorProps) {
                     <dt className="text-base font-semibold text-neutral-950">
                       Total price
                     </dt>
-                    <dd className="text-2xl font-semibold tracking-tight text-neutral-950">
-                      {formatCurrency(totalPrice)}
-                    </dd>
+                    <AnimatePresence mode="wait">
+                      <motion.dd
+                        key={totalPrice}
+                        initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
+                        transition={{ duration: 0.18 }}
+                        className="text-2xl font-semibold tracking-tight text-neutral-950"
+                      >
+                        {formatCurrency(totalPrice)}
+                      </motion.dd>
+                    </AnimatePresence>
                   </div>
                 </dl>
               </section>
@@ -298,7 +352,7 @@ export function OrderConfigurator({ vehicle }: OrderConfiguratorProps) {
                 <Button
                   type="button"
                   size="lg"
-                  className="h-11 flex-1 rounded-full px-6 text-sm font-semibold"
+                  className="h-11 flex-1 rounded-full px-6 text-sm font-semibold transition-transform duration-200 motion-safe:hover:-translate-y-px"
                 >
                   Continue
                 </Button>
@@ -306,13 +360,13 @@ export function OrderConfigurator({ vehicle }: OrderConfiguratorProps) {
                   type="button"
                   size="lg"
                   variant="outline"
-                  className="h-11 flex-1 rounded-full px-6 text-sm font-semibold"
+                  className="h-11 flex-1 rounded-full px-6 text-sm font-semibold transition-transform duration-200 motion-safe:hover:-translate-y-px"
                 >
                   Save Build
                 </Button>
               </div>
             </div>
-          </aside>
+          </Reveal>
         </div>
       </div>
     </section>

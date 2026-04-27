@@ -1,4 +1,5 @@
 import { EmptyState } from "@/components/shared/EmptyState";
+import { Reveal } from "@/components/shared/Reveal";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { VehicleCard } from "@/components/vehicles/VehicleCard";
 import { ROUTES } from "@/constants/routes";
@@ -23,17 +24,19 @@ export function VehicleGrid({ vehicles }: VehicleGridProps) {
   return (
     <section className="bg-white py-16 sm:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <SectionHeader
-          eyebrow="Vehicle Lineup"
-          title="Explore Our Vehicles"
-          description="Compare range, speed, acceleration, and pricing across the lineup."
-          align="left"
-        />
+        <Reveal className="max-w-3xl">
+          <SectionHeader
+            eyebrow="Vehicle Lineup"
+            title="Explore Our Vehicles"
+            description="Compare range, speed, acceleration, and pricing across the lineup."
+            align="left"
+          />
+        </Reveal>
 
         <ul className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {vehicles.map((vehicle) => (
+          {vehicles.map((vehicle, index) => (
             <li key={vehicle.id} className="list-none">
-              <VehicleCard vehicle={vehicle} />
+              <VehicleCard vehicle={vehicle} index={index} />
             </li>
           ))}
         </ul>

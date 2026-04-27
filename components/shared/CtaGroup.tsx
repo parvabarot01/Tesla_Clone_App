@@ -64,7 +64,7 @@ export function CtaGroup({
             size: "lg",
             variant: item.variant === "outline" ? "outline" : "default",
             className: cn(
-              "h-11 rounded-full px-6 text-sm font-semibold",
+              "h-11 rounded-full px-6 text-sm font-semibold transition-[background-color,border-color,color,transform] duration-200 motion-safe:hover:-translate-y-px",
               item.variant === "primary"
                 ? "bg-neutral-950 text-white hover:bg-neutral-800"
                 : "border-neutral-300 bg-white text-neutral-950 hover:bg-neutral-100"

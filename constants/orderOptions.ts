@@ -18,8 +18,8 @@ export const paintOptions: OrderOption[] = [
     },
   },
   {
-    id: "midnight-silver",
-    label: "Midnight Silver",
+    id: "stealth-grey",
+    label: "Stealth Grey",
     price: 1000,
     previewImages: {
       "model-3": "/images/order/model-3/stealth-grey.jpeg",
@@ -27,18 +27,20 @@ export const paintOptions: OrderOption[] = [
       cybertruck: "/images/order/cybertruck/grey.avif",
     },
   },
-  { id: "deep-blue", label: "Deep Blue", price: 1000 },
   {
-    id: "solid-black",
-    label: "Solid Black",
+    id: "diamond-black",
+    label: "Diamond Black",
     price: 1500,
     previewImages: {
       "model-3": "/images/order/model-3/diamond-black.jpeg",
       "model-y": "/images/order/model-y/diamond-black.jpeg",
     },
   },
-  { id: "ultra-red", label: "Ultra Red", price: 2000 },
 ];
+
+export function getPaintOptionsForVehicle(vehicleSlug: Vehicle["slug"]) {
+  return paintOptions.filter((option) => option.previewImages?.[vehicleSlug]);
+}
 
 export const wheelOptions: OrderOption[] = [
   { id: "standard-wheels", label: "Standard Wheels", price: 0 },
