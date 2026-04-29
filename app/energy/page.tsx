@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { CtaGroup } from "@/components/shared/CtaGroup";
+import { InfoCard } from "@/components/shared/InfoCard";
 import { PageTransition } from "@/components/shared/PageTransition";
 import { PageHero } from "@/components/shared/PageHero";
 import { Reveal } from "@/components/shared/Reveal";
@@ -13,18 +14,45 @@ export const metadata: Metadata = {
   description: "Generate, store, and manage clean energy from your home.",
 };
 
-const energyHighlights = [
+const energyEcosystem = [
   {
     eyebrow: "01",
-    title: "Generate at Home",
+    title: "Solar Panels",
     description:
-      "Use rooftop solar as a clean source of energy for everyday routines, from morning starts to overnight charging habits.",
+      "Capture sunlight across the day and turn your roof into a cleaner source of power for everyday routines.",
   },
   {
     eyebrow: "02",
-    title: "Store for Later",
+    title: "Powerwall",
     description:
-      "Pair generation with backup storage so your home can stay more resilient during outages and peak-demand hours.",
+      "Store excess energy for evening use, peak-demand hours, and a steadier backup plan during outages.",
+  },
+  {
+    eyebrow: "03",
+    title: "Energy Independence",
+    description:
+      "Bring generation, storage, and charging together into one system designed to feel simple and self-directed.",
+  },
+];
+
+const energyBenefits = [
+  {
+    title: "Clean energy flow",
+    description:
+      "Move from generation to storage and vehicle charging with a setup that feels calm, connected, and easy to monitor.",
+    points: ["Generate through the day", "Use stored energy at night"],
+  },
+  {
+    title: "Outage readiness",
+    description:
+      "Keep essential loads covered with a smarter backup layer built into the wider home energy ecosystem.",
+    points: ["Backup for priority rooms", "More resilient daily planning"],
+  },
+  {
+    title: "Energy management",
+    description:
+      "See production, storage, and usage in one place so the system feels understandable rather than technical.",
+    points: ["Track usage with clarity", "Coordinate charging and storage"],
   },
 ];
 
@@ -43,53 +71,83 @@ export default function EnergyPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <Reveal className="max-w-3xl">
             <SectionHeader
-              eyebrow="Home Energy"
+              eyebrow="Home Energy Ecosystem"
               title="A cleaner setup for daily life"
-              description="This frontend-only concept page presents solar generation and storage as a connected home energy experience."
+              description="Present solar generation, battery storage, and home charging as one connected energy story that feels calm, modern, and product-led."
               align="left"
             />
           </Reveal>
 
           <StaggerGroup
-            className="mt-10 grid gap-6 lg:grid-cols-2"
+            className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3"
             delayChildren={0.03}
-            staggerChildren={0.08}
+            staggerChildren={0.07}
           >
-            {energyHighlights.map((item) => (
-              <article
+            {energyEcosystem.map((item) => (
+              <InfoCard
                 key={item.title}
-                className="rounded-[2rem] border border-black/6 bg-neutral-50 p-6 shadow-[0_16px_40px_rgba(17,17,17,0.06)] transition-[transform,box-shadow,border-color] duration-300 ease-out motion-safe:hover:-translate-y-px motion-safe:hover:shadow-[0_20px_44px_rgba(17,17,17,0.08)] sm:p-8"
+                eyebrow={item.eyebrow}
+                title={item.title}
+                description={item.description}
               >
-                <p className="text-sm font-semibold uppercase tracking-[0.28em] text-neutral-500">
-                  {item.eyebrow}
+                <p className="text-sm font-semibold text-neutral-950">
+                  Built to work alongside a more independent daily routine.
                 </p>
-                <h3 className="mt-4 text-2xl font-semibold tracking-tight text-neutral-950">
-                  {item.title}
-                </h3>
-                <p className="mt-4 text-sm leading-7 text-neutral-600 sm:text-base">
-                  {item.description}
-                </p>
-              </article>
+              </InfoCard>
             ))}
           </StaggerGroup>
         </div>
       </section>
 
-      <section className="bg-neutral-50 pb-20 pt-4 sm:pb-24">
+      <section className="bg-neutral-50 py-16 sm:py-20">
+        <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-start lg:px-8">
+          <Reveal className="max-w-2xl">
+            <SectionHeader
+              eyebrow="Benefits"
+              title="Built around everyday control"
+              description="Keep the page frontend-only while still telling a stronger story about how generation, storage, and home energy management work together."
+              align="left"
+            />
+          </Reveal>
+
+          <StaggerGroup
+            className="grid gap-6"
+            delayChildren={0.03}
+            staggerChildren={0.08}
+          >
+            {energyBenefits.map((item) => (
+              <InfoCard
+                key={item.title}
+                title={item.title}
+                description={item.description}
+                className="bg-white"
+              >
+                <ul className="space-y-2 text-sm leading-6 text-neutral-600">
+                  {item.points.map((point) => (
+                    <li key={point}>{point}</li>
+                  ))}
+                </ul>
+              </InfoCard>
+            ))}
+          </StaggerGroup>
+        </div>
+      </section>
+
+      <section className="bg-white pb-20 pt-4 sm:pb-24">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <Reveal>
-            <div className="rounded-[2rem] border border-black/6 bg-white px-6 py-8 text-center shadow-[0_18px_48px_rgba(17,17,17,0.06)] sm:px-8 sm:py-10">
+            <div className="rounded-[2rem] border border-black/6 bg-neutral-50 px-6 py-8 text-center shadow-[0_18px_48px_rgba(17,17,17,0.06)] sm:px-8 sm:py-10">
               <SectionHeader
                 eyebrow="Next Step"
-                title="Build a smarter energy routine"
-                description="Use this page as a polished placeholder for a future energy sales flow, while keeping the current app frontend-only."
+                title="Build a smarter home energy story"
+                description="Use this richer placeholder page to show how energy fits into the broader ownership experience while the app stays fully frontend-only."
               />
               <div className="mt-8">
                 <CtaGroup
                   primaryLabel="Explore Charging"
                   primaryHref={ROUTES.charging}
-                  secondaryLabel="Browse Shop"
-                  secondaryHref={ROUTES.shop}
+                  secondaryLabel="Compare Vehicles"
+                  secondaryHref={ROUTES.compare}
                 />
               </div>
             </div>

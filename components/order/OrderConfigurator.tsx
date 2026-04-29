@@ -2,7 +2,15 @@
 
 import Image from "next/image";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { useMemo, useState } from "react";
+import {
+  Check,
+  CircleDot,
+  Palette,
+  Sofa,
+  Sparkles,
+  type LucideIcon,
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 import { Reveal } from "@/components/shared/Reveal";
 import { Button } from "@/components/ui/button";
@@ -14,54 +22,64 @@ import {
   type OrderOption,
 } from "@/constants/orderOptions";
 import { ROUTES } from "@/constants/routes";
+import {
+  formatCurrency,
+  getOrderPreviewCandidates,
+  getOrderPricingBreakdown,
+  getSelectedOrderOption,
+} from "@/lib/order";
+import { getBuildStorageKey, safeLocalStorageGet, safeLocalStorageSet } from "@/lib/storage";
 import { cn } from "@/lib/utils";
-import type { Vehicle } from "@/types";
+import type { PersistedBuildSelection, Vehicle } from "@/types";
 
 type OptionGroupProps = {
   description: string;
-  name: string;
+  icon: LucideIcon;
   options: OrderOption[];
   selectedId: string;
   title: string;
   onSelect: (id: string) => void;
 };
 
-function parsePrice(value: string) {
-  return Number(value.replace(/[^0-9.]+/g, ""));
-}
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-function getSelectedOption(options: OrderOption[], selectedId: string) {
-  return options.find((option) => option.id === selectedId) ?? options[0];
-}
-
-function getPaintPreviewImage(vehicle: Vehicle, selectedPaint: OrderOption) {
-  return selectedPaint.previewImages?.[vehicle.slug] ?? vehicle.image;
+function formatOptionCardPrice(price: number) {
+  return price === 0 ? "Included" : formatCurrency(price);
 }
 
 function OptionGroup({
   description,
-  name,
+  icon: Icon,
   options,
   selectedId,
   title,
   onSelect,
 }: OptionGroupProps) {
-  return (
-    <fieldset className="space-y-4">
-      <legend className="text-lg font-semibold tracking-tight text-neutral-950">
-        {title}
-      </legend>
-      <p className="text-sm leading-6 text-neutral-600">{description}</p>
+  const selectedOption = getSelectedOrderOption(options, selectedId);
 
-      <div className="grid gap-3">
+  return (
+    <fieldset className="rounded-[1.75rem] border border-black/6 bg-neutral-50/90 p-5 sm:p-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <span className="flex size-10 items-center justify-center rounded-2xl border border-black/6 bg-white shadow-[0_10px_24px_rgba(17,17,17,0.04)]">
+              <Icon className="size-4 text-neutral-800" />
+            </span>
+            <legend className="text-lg font-semibold tracking-tight text-neutral-950">
+              {title}
+            </legend>
+          </div>
+          <p className="max-w-2xl text-sm leading-6 text-neutral-600">
+            {description}
+          </p>
+        </div>
+
+        {selectedOption ? (
+          <span className="inline-flex w-fit rounded-full border border-black/8 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-600">
+            {selectedOption.label}
+          </span>
+        ) : null}
+      </div>
+
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
         {options.map((option) => {
           const isSelected = selectedId === option.id;
 
@@ -72,38 +90,68 @@ function OptionGroup({
               aria-pressed={isSelected}
               onClick={() => onSelect(option.id)}
               className={cn(
-                "group flex w-full items-center justify-between rounded-[1.4rem] border px-4 py-4 text-left transition-[transform,box-shadow,border-color,background-color,color] duration-200 ease-out focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-black/6",
+                "group flex w-full items-start justify-between gap-4 rounded-[1.4rem] border px-4 py-4 text-left transition-[transform,box-shadow,border-color,background-color,color] duration-200 ease-out focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-black/6",
                 isSelected
                   ? "border-neutral-950 bg-neutral-950 text-white shadow-[0_18px_40px_rgba(17,17,17,0.18)]"
                   : "border-black/8 bg-white text-neutral-950 hover:border-black/16 hover:bg-neutral-50 hover:shadow-[0_14px_32px_rgba(17,17,17,0.06)] motion-safe:hover:-translate-y-px"
               )}
             >
-              <span className="flex flex-col gap-1">
-                <span className="text-sm font-semibold sm:text-base">
-                  {option.label}
-                </span>
+              <span className="flex min-w-0 items-start gap-3">
                 <span
                   className={cn(
-                    "text-xs uppercase tracking-[0.2em]",
-                    isSelected ? "text-white/62" : "text-neutral-500"
+                    "mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-2xl border transition-colors duration-200",
+                    isSelected
+                      ? "border-white/15 bg-white/10"
+                      : "border-black/8 bg-neutral-50"
                   )}
                 >
-                  {name}
+                  {option.swatchClassName ? (
+                    <span
+                      aria-hidden="true"
+                      className={cn("size-4 rounded-full", option.swatchClassName)}
+                    />
+                  ) : (
+                    <Icon
+                      className={cn(
+                        "size-4",
+                        isSelected ? "text-white" : "text-neutral-700"
+                      )}
+                    />
+                  )}
+                </span>
+
+                <span className="flex min-w-0 flex-col gap-1">
+                  <span className="text-sm font-semibold sm:text-base">
+                    {option.label}
+                  </span>
+                  {option.description ? (
+                    <span
+                      className={cn(
+                        "text-sm leading-6",
+                        isSelected ? "text-white/72" : "text-neutral-600"
+                      )}
+                    >
+                      {option.description}
+                    </span>
+                  ) : null}
                 </span>
               </span>
-              <span className="flex items-center gap-3">
+
+              <span className="flex shrink-0 flex-col items-end gap-3">
                 <span className="text-sm font-semibold sm:text-base">
-                  {formatCurrency(option.price)}
+                  {formatOptionCardPrice(option.price)}
                 </span>
                 <span
-                  aria-hidden="true"
                   className={cn(
-                    "size-3 rounded-full border transition-colors duration-200",
+                    "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] transition-colors duration-200",
                     isSelected
-                      ? "border-white bg-white shadow-[0_0_0_4px_rgba(255,255,255,0.14)]"
-                      : "border-neutral-300 bg-transparent group-hover:border-neutral-400"
+                      ? "bg-white/12 text-white"
+                      : "bg-neutral-100 text-neutral-500 group-hover:bg-neutral-200"
                   )}
-                />
+                >
+                  {isSelected ? <Check className="size-3" /> : null}
+                  {isSelected ? "Selected" : "Choose"}
+                </span>
               </span>
             </button>
           );
@@ -117,31 +165,185 @@ type OrderConfiguratorProps = {
   vehicle: Vehicle;
 };
 
+type PreviewMediaProps = {
+  category: string;
+  paintLabel: string;
+  prefersReducedMotion: boolean | null;
+  previewCandidates: string[];
+  vehicleName: string;
+};
+
+function PreviewMedia({
+  category,
+  paintLabel,
+  prefersReducedMotion,
+  previewCandidates,
+  vehicleName,
+}: PreviewMediaProps) {
+  const [previewIndex, setPreviewIndex] = useState(0);
+  const previewImage = previewCandidates[previewIndex] ?? previewCandidates[0];
+
+  const handlePreviewError = () => {
+    setPreviewIndex((currentIndex) => {
+      if (currentIndex >= previewCandidates.length - 1) {
+        return currentIndex;
+      }
+
+      return currentIndex + 1;
+    });
+  };
+
+  return (
+    <div className="relative aspect-[5/4] overflow-hidden bg-neutral-100">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={previewImage}
+          initial={
+            prefersReducedMotion
+              ? { opacity: 1 }
+              : { opacity: 0.76, scale: 1.018 }
+          }
+          animate={{ opacity: 1, scale: 1 }}
+          exit={
+            prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 1.02 }
+          }
+          transition={{
+            duration: prefersReducedMotion ? 0.12 : 0.24,
+            ease: "easeOut",
+          }}
+          className="absolute inset-0"
+        >
+          <Image
+            src={previewImage}
+            alt={`${vehicleName} preview in ${paintLabel}`}
+            fill
+            sizes="(min-width: 1024px) 50vw, 100vw"
+            className="object-cover"
+            onError={handlePreviewError}
+          />
+        </motion.div>
+      </AnimatePresence>
+
+      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/8 to-transparent" />
+
+      <div className="absolute left-5 right-5 top-5 flex items-start justify-between gap-3">
+        <motion.span
+          initial={
+            prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 8 }
+          }
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}
+          className="inline-flex rounded-full border border-white/18 bg-black/28 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white backdrop-blur-sm"
+        >
+          {paintLabel}
+        </motion.span>
+
+        <span className="inline-flex rounded-full border border-white/18 bg-black/28 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white backdrop-blur-sm">
+          {category}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export function OrderConfigurator({ vehicle }: OrderConfiguratorProps) {
   const prefersReducedMotion = useReducedMotion();
-  const [selectedPaintId, setSelectedPaintId] = useState("");
-  const [selectedWheelsId, setSelectedWheelsId] = useState(wheelOptions[0].id);
-  const [selectedInteriorId, setSelectedInteriorId] = useState(
-    interiorOptions[0].id
-  );
+  const paintOptions = getPaintOptionsForVehicle(vehicle.slug);
+  const defaultPaintId = paintOptions[0]?.id ?? "";
+  const defaultWheelsId = wheelOptions[0].id;
+  const defaultInteriorId = interiorOptions[0].id;
+  const buildStorageKey = getBuildStorageKey(vehicle.slug);
+  const hasRestoredBuildRef = useRef(false);
 
-  const paintOptions = useMemo(
-    () => getPaintOptionsForVehicle(vehicle.slug),
-    [vehicle.slug]
+  const [selectedPaintId, setSelectedPaintId] = useState(
+    () => defaultPaintId
   );
-  const basePrice = useMemo(
-    () => parsePrice(vehicle.startingPrice),
-    [vehicle.startingPrice]
+  const [selectedWheelsId, setSelectedWheelsId] = useState(defaultWheelsId);
+  const [selectedInteriorId, setSelectedInteriorId] = useState(defaultInteriorId);
+
+  useEffect(() => {
+    const storedBuild =
+      safeLocalStorageGet<PersistedBuildSelection>(buildStorageKey);
+
+    if (!storedBuild) {
+      hasRestoredBuildRef.current = true;
+      return;
+    }
+
+    const availablePaintOptions = getPaintOptionsForVehicle(vehicle.slug);
+    const fallbackPaintId = availablePaintOptions[0]?.id ?? "";
+    const nextPaintId = availablePaintOptions.some(
+      (option) => option.id === storedBuild.paintId
+    )
+      ? storedBuild.paintId
+      : fallbackPaintId;
+    const nextWheelsId = wheelOptions.some(
+      (option) => option.id === storedBuild.wheelsId
+    )
+      ? storedBuild.wheelsId
+      : defaultWheelsId;
+    const nextInteriorId = interiorOptions.some(
+      (option) => option.id === storedBuild.interiorId
+    )
+      ? storedBuild.interiorId
+      : defaultInteriorId;
+
+    const frame = window.requestAnimationFrame(() => {
+      setSelectedPaintId(nextPaintId);
+      setSelectedWheelsId(nextWheelsId);
+      setSelectedInteriorId(nextInteriorId);
+      hasRestoredBuildRef.current = true;
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [buildStorageKey, defaultInteriorId, defaultWheelsId, vehicle.slug]);
+
+  const selectedPaint = getSelectedOrderOption(paintOptions, selectedPaintId);
+  const selectedWheels = getSelectedOrderOption(wheelOptions, selectedWheelsId);
+  const selectedInterior = getSelectedOrderOption(
+    interiorOptions,
+    selectedInteriorId
   );
-  const selectedPaint = getSelectedOption(paintOptions, selectedPaintId);
-  const selectedWheels = getSelectedOption(wheelOptions, selectedWheelsId);
-  const selectedInterior = getSelectedOption(interiorOptions, selectedInteriorId);
-  const previewImage = getPaintPreviewImage(vehicle, selectedPaint);
-  const totalPrice =
-    basePrice +
-    selectedPaint.price +
-    selectedWheels.price +
-    selectedInterior.price;
+  const pricing = selectedPaint
+    ? getOrderPricingBreakdown(
+        vehicle,
+        selectedPaint,
+        selectedWheels,
+        selectedInterior
+      )
+    : {
+        basePrice: 0,
+        paintPrice: 0,
+        wheelsPrice: 0,
+        interiorPrice: 0,
+        totalPrice: 0,
+      };
+
+  const previewCandidates = getOrderPreviewCandidates(vehicle, selectedPaint);
+  const previewSignature = previewCandidates.join("|");
+
+  useEffect(() => {
+    if (!hasRestoredBuildRef.current || !selectedPaint) {
+      return;
+    }
+
+    safeLocalStorageSet(buildStorageKey, {
+      paintId: selectedPaint.id,
+      wheelsId: selectedWheels.id,
+      interiorId: selectedInterior.id,
+    } satisfies PersistedBuildSelection);
+  }, [
+    buildStorageKey,
+    selectedInterior.id,
+    selectedPaint,
+    selectedWheels.id,
+  ]);
+
+  function handleResetBuild() {
+    setSelectedPaintId(defaultPaintId);
+    setSelectedWheelsId(defaultWheelsId);
+    setSelectedInteriorId(defaultInteriorId);
+  }
 
   return (
     <section className="bg-neutral-50 py-10 sm:py-14">
@@ -165,90 +367,206 @@ export function OrderConfigurator({ vehicle }: OrderConfiguratorProps) {
           </ButtonLink>
         </Reveal>
 
-        <div className="grid gap-6 lg:grid-cols-[1.08fr_0.92fr] lg:items-start">
-          <Reveal as="article" className="overflow-hidden rounded-[2rem] border border-black/6 bg-white shadow-[0_20px_50px_rgba(17,17,17,0.08)]">
-            <div className="relative aspect-[5/4] overflow-hidden bg-neutral-100">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={previewImage}
-                  initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0.72, scale: 1.015 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 1.02 }}
-                  transition={{ duration: prefersReducedMotion ? 0.12 : 0.24, ease: "easeOut" }}
-                  className="absolute inset-0"
-                >
-                  <Image
-                    src={previewImage}
-                    alt={`${vehicle.name} preview in ${selectedPaint.label}`}
-                    fill
-                    sizes="(min-width: 1024px) 50vw, 100vw"
-                    className="object-cover"
-                  />
-                </motion.div>
-              </AnimatePresence>
-              <div className="absolute inset-0 bg-gradient-to-t from-black/32 via-black/6 to-transparent" />
-              <div className="absolute left-5 top-5">
-                <AnimatePresence mode="wait">
-                  <motion.span
-                    key={selectedPaint.id}
-                    initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
-                    transition={{ duration: 0.2 }}
-                    className="inline-flex rounded-full border border-white/18 bg-black/28 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white backdrop-blur-sm"
-                  >
-                    {selectedPaint.label}
-                  </motion.span>
-                </AnimatePresence>
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(340px,0.95fr)] lg:items-start">
+          <div className="space-y-6 lg:sticky lg:top-24">
+            <Reveal
+              as="article"
+              className="overflow-hidden rounded-[2rem] border border-black/6 bg-white shadow-[0_20px_50px_rgba(17,17,17,0.08)]"
+            >
+              <PreviewMedia
+                key={previewSignature}
+                category={vehicle.category}
+                paintLabel={selectedPaint?.label ?? "Preview"}
+                prefersReducedMotion={prefersReducedMotion}
+                previewCandidates={previewCandidates}
+                vehicleName={vehicle.name}
+              />
+
+              <div className="space-y-5 px-6 py-7 sm:px-8">
+                <div className="space-y-3">
+                  <p className="text-sm font-semibold uppercase tracking-[0.26em] text-neutral-500">
+                    Design Your Build
+                  </p>
+                  <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 sm:text-4xl">
+                    {vehicle.name}
+                  </h1>
+                  <p className="text-sm leading-7 text-neutral-600 sm:text-base">
+                    {vehicle.tagline}
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <span className="inline-flex rounded-full border border-black/8 bg-neutral-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-neutral-600">
+                    {selectedPaint?.label}
+                  </span>
+                  <span className="inline-flex rounded-full border border-black/8 bg-neutral-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-neutral-600">
+                    {selectedWheels.label}
+                  </span>
+                  <span className="inline-flex rounded-full border border-black/8 bg-neutral-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-neutral-600">
+                    {selectedInterior.label}
+                  </span>
+                </div>
+
+                <dl className="grid gap-3 pt-1 sm:grid-cols-3">
+                  <div className="rounded-[1.35rem] bg-neutral-50 px-4 py-4 transition-[background-color,transform] duration-200 ease-out motion-safe:hover:-translate-y-px">
+                    <dt className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
+                      Range
+                    </dt>
+                    <dd className="mt-2 text-base font-semibold text-neutral-950">
+                      {vehicle.range}
+                    </dd>
+                  </div>
+                  <div className="rounded-[1.35rem] bg-neutral-50 px-4 py-4 transition-[background-color,transform] duration-200 ease-out motion-safe:hover:-translate-y-px">
+                    <dt className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
+                      Top Speed
+                    </dt>
+                    <dd className="mt-2 text-base font-semibold text-neutral-950">
+                      {vehicle.topSpeed}
+                    </dd>
+                  </div>
+                  <div className="rounded-[1.35rem] bg-neutral-50 px-4 py-4 transition-[background-color,transform] duration-200 ease-out motion-safe:hover:-translate-y-px">
+                    <dt className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
+                      0-60 mph
+                    </dt>
+                    <dd className="mt-2 text-base font-semibold text-neutral-950">
+                      {vehicle.acceleration}
+                    </dd>
+                  </div>
+                </dl>
+
+                <p className="text-xs font-medium uppercase tracking-[0.22em] text-neutral-500">
+                  Paint-based preview imagery updates automatically when a matching placeholder image exists.
+                </p>
               </div>
-            </div>
+            </Reveal>
 
-            <div className="space-y-4 px-6 py-7 sm:px-8">
-              <p className="text-sm font-semibold uppercase tracking-[0.26em] text-neutral-500">
-                {vehicle.category}
-              </p>
-              <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 sm:text-4xl">
-                {vehicle.name}
-              </h1>
-              <p className="text-sm leading-7 text-neutral-600 sm:text-base">
-                {vehicle.tagline}
-              </p>
-              <p className="text-xs font-medium uppercase tracking-[0.24em] text-neutral-500">
-                Color preview updates when a supported paint image is available.
-              </p>
+            <Reveal
+              as="section"
+              delay={0.08}
+              className="overflow-hidden rounded-[2rem] border border-black/6 bg-white shadow-[0_20px_50px_rgba(17,17,17,0.08)]"
+            >
+              <div className="border-b border-black/6 px-6 py-6 sm:px-8">
+                <p className="text-sm font-semibold uppercase tracking-[0.28em] text-neutral-500">
+                  Selected Build
+                </p>
+                <h2 className="mt-3 text-2xl font-semibold tracking-tight text-neutral-950">
+                  Build summary
+                </h2>
+                <p className="mt-3 text-sm leading-7 text-neutral-600">
+                  A quick readout of the current configuration and its pricing breakdown.
+                </p>
+              </div>
 
-              <dl className="grid gap-3 pt-2 sm:grid-cols-3">
-                <div className="rounded-[1.35rem] bg-neutral-50 px-4 py-4 transition-[background-color,transform] duration-200 ease-out motion-safe:hover:-translate-y-px">
-                  <dt className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
-                    Range
-                  </dt>
-                  <dd className="mt-2 text-base font-semibold text-neutral-950">
-                    {vehicle.range}
-                  </dd>
+              <div className="space-y-6 px-6 py-6 sm:px-8">
+                <dl className="space-y-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <dt className="text-sm text-neutral-600">Vehicle</dt>
+                    <dd className="text-right text-sm font-semibold text-neutral-950">
+                      {vehicle.name}
+                    </dd>
+                  </div>
+                  <div className="flex items-start justify-between gap-4">
+                    <dt className="text-sm text-neutral-600">Paint</dt>
+                    <dd className="text-right text-sm font-semibold text-neutral-950">
+                      {selectedPaint?.label}
+                    </dd>
+                  </div>
+                  <div className="flex items-start justify-between gap-4">
+                    <dt className="text-sm text-neutral-600">Wheels</dt>
+                    <dd className="text-right text-sm font-semibold text-neutral-950">
+                      {selectedWheels.label}
+                    </dd>
+                  </div>
+                  <div className="flex items-start justify-between gap-4">
+                    <dt className="text-sm text-neutral-600">Interior</dt>
+                    <dd className="text-right text-sm font-semibold text-neutral-950">
+                      {selectedInterior.label}
+                    </dd>
+                  </div>
+                </dl>
+
+                <div className="rounded-[1.75rem] border border-black/6 bg-neutral-50 p-5 sm:p-6">
+                  <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-neutral-500">
+                    <Sparkles className="size-4" />
+                    Pricing
+                  </div>
+
+                  <dl className="mt-5 space-y-3 text-sm sm:text-base">
+                    <div className="flex items-center justify-between gap-4">
+                      <dt className="text-neutral-600">Base price</dt>
+                      <dd className="font-semibold text-neutral-950">
+                        {formatCurrency(pricing.basePrice)}
+                      </dd>
+                    </div>
+                    <div className="flex items-center justify-between gap-4">
+                      <dt className="text-neutral-600">
+                        Paint
+                        {selectedPaint ? (
+                          <span className="ml-2 text-xs text-neutral-500">
+                            {selectedPaint.label}
+                          </span>
+                        ) : null}
+                      </dt>
+                      <dd className="font-semibold text-neutral-950">
+                        {formatCurrency(pricing.paintPrice)}
+                      </dd>
+                    </div>
+                    <div className="flex items-center justify-between gap-4">
+                      <dt className="text-neutral-600">
+                        Wheels
+                        <span className="ml-2 text-xs text-neutral-500">
+                          {selectedWheels.label}
+                        </span>
+                      </dt>
+                      <dd className="font-semibold text-neutral-950">
+                        {formatCurrency(pricing.wheelsPrice)}
+                      </dd>
+                    </div>
+                    <div className="flex items-center justify-between gap-4">
+                      <dt className="text-neutral-600">
+                        Interior
+                        <span className="ml-2 text-xs text-neutral-500">
+                          {selectedInterior.label}
+                        </span>
+                      </dt>
+                      <dd className="font-semibold text-neutral-950">
+                        {formatCurrency(pricing.interiorPrice)}
+                      </dd>
+                    </div>
+                    <div className="mt-4 flex items-center justify-between gap-4 border-t border-black/8 pt-4">
+                      <dt className="text-base font-semibold text-neutral-950">
+                        Total price
+                      </dt>
+                      <AnimatePresence mode="wait">
+                        <motion.dd
+                          key={pricing.totalPrice}
+                          initial={
+                            prefersReducedMotion
+                              ? { opacity: 1 }
+                              : { opacity: 0, y: 8 }
+                          }
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={
+                            prefersReducedMotion
+                              ? { opacity: 0 }
+                              : { opacity: 0, y: -8 }
+                          }
+                          transition={{ duration: 0.18 }}
+                          className="text-2xl font-semibold tracking-tight text-neutral-950"
+                        >
+                          {formatCurrency(pricing.totalPrice)}
+                        </motion.dd>
+                      </AnimatePresence>
+                    </div>
+                  </dl>
                 </div>
-                <div className="rounded-[1.35rem] bg-neutral-50 px-4 py-4 transition-[background-color,transform] duration-200 ease-out motion-safe:hover:-translate-y-px">
-                  <dt className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
-                    Top Speed
-                  </dt>
-                  <dd className="mt-2 text-base font-semibold text-neutral-950">
-                    {vehicle.topSpeed}
-                  </dd>
-                </div>
-                <div className="rounded-[1.35rem] bg-neutral-50 px-4 py-4 transition-[background-color,transform] duration-200 ease-out motion-safe:hover:-translate-y-px">
-                  <dt className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
-                    0-60 mph
-                  </dt>
-                  <dd className="mt-2 text-base font-semibold text-neutral-950">
-                    {vehicle.acceleration}
-                  </dd>
-                </div>
-              </dl>
-            </div>
-          </Reveal>
+              </div>
+            </Reveal>
+          </div>
 
           <Reveal
             as="article"
-            delay={0.08}
+            delay={0.1}
             className="overflow-hidden rounded-[2rem] border border-black/6 bg-white shadow-[0_20px_50px_rgba(17,17,17,0.08)]"
           >
             <div className="border-b border-black/6 px-6 py-6 sm:px-8">
@@ -258,17 +576,16 @@ export function OrderConfigurator({ vehicle }: OrderConfiguratorProps) {
               <h2 className="mt-3 text-3xl font-semibold tracking-tight text-neutral-950">
                 Build your {vehicle.name}
               </h2>
-              <p className="mt-3 text-sm leading-7 text-neutral-600 sm:text-base">
-                This is a frontend-only mock configurator. Select paint, wheels,
-                and interior options to see the total update instantly.
+              <p className="mt-3 max-w-2xl text-sm leading-7 text-neutral-600 sm:text-base">
+                Refine the exterior, wheel package, and interior finish to create a more complete frontend-only buying flow.
               </p>
             </div>
 
-            <div className="space-y-8 px-6 py-6 sm:px-8">
+            <div className="space-y-6 px-6 py-6 sm:px-8">
               <OptionGroup
                 title="Paint Color"
-                name="Paint"
-                description="Choose a finish that fits the mood of your build."
+                description="Choose a finish that sets the tone for the exterior. Matching placeholder preview imagery will appear when available."
+                icon={Palette}
                 options={paintOptions}
                 selectedId={selectedPaintId}
                 onSelect={setSelectedPaintId}
@@ -276,8 +593,8 @@ export function OrderConfigurator({ vehicle }: OrderConfiguratorProps) {
 
               <OptionGroup
                 title="Wheels"
-                name="Wheels"
-                description="Dial in the overall stance and road presence."
+                description="Dial in the overall stance and road presence with a wheel setup that matches your build."
+                icon={CircleDot}
                 options={wheelOptions}
                 selectedId={selectedWheelsId}
                 onSelect={setSelectedWheelsId}
@@ -285,85 +602,46 @@ export function OrderConfigurator({ vehicle }: OrderConfiguratorProps) {
 
               <OptionGroup
                 title="Interior"
-                name="Interior"
-                description="Pick a cabin finish for a cleaner everyday experience."
+                description="Pick a cabin finish that feels clean, quiet, and premium for everyday use."
+                icon={Sofa}
                 options={interiorOptions}
                 selectedId={selectedInteriorId}
                 onSelect={setSelectedInteriorId}
               />
 
-              <section
-                aria-labelledby="price-summary-heading"
-                className="rounded-[1.75rem] border border-black/6 bg-neutral-50 p-5 sm:p-6"
-              >
-                <h3
-                  id="price-summary-heading"
-                  className="text-lg font-semibold tracking-tight text-neutral-950"
-                >
-                  Price Summary
-                </h3>
+              <div className="rounded-[1.75rem] border border-black/6 bg-neutral-50 p-5 sm:p-6">
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <Button
+                    type="button"
+                    size="lg"
+                    className="h-11 flex-1 rounded-full px-6 text-sm font-semibold transition-transform duration-200 motion-safe:hover:-translate-y-px"
+                  >
+                    Continue
+                  </Button>
+                  <Button
+                    type="button"
+                    size="lg"
+                    variant="outline"
+                    className="h-11 flex-1 rounded-full px-6 text-sm font-semibold transition-transform duration-200 motion-safe:hover:-translate-y-px"
+                  >
+                    Save Build
+                  </Button>
+                </div>
 
-                <dl className="mt-5 space-y-3 text-sm sm:text-base">
-                  <div className="flex items-center justify-between gap-4">
-                    <dt className="text-neutral-600">Base price</dt>
-                    <dd className="font-semibold text-neutral-950">
-                      {formatCurrency(basePrice)}
-                    </dd>
-                  </div>
-                  <div className="flex items-center justify-between gap-4">
-                    <dt className="text-neutral-600">Paint price</dt>
-                    <dd className="font-semibold text-neutral-950">
-                      {formatCurrency(selectedPaint.price)}
-                    </dd>
-                  </div>
-                  <div className="flex items-center justify-between gap-4">
-                    <dt className="text-neutral-600">Wheels price</dt>
-                    <dd className="font-semibold text-neutral-950">
-                      {formatCurrency(selectedWheels.price)}
-                    </dd>
-                  </div>
-                  <div className="flex items-center justify-between gap-4">
-                    <dt className="text-neutral-600">Interior price</dt>
-                    <dd className="font-semibold text-neutral-950">
-                      {formatCurrency(selectedInterior.price)}
-                    </dd>
-                  </div>
-                  <div className="mt-4 flex items-center justify-between gap-4 border-t border-black/8 pt-4">
-                    <dt className="text-base font-semibold text-neutral-950">
-                      Total price
-                    </dt>
-                    <AnimatePresence mode="wait">
-                      <motion.dd
-                        key={totalPrice}
-                        initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
-                        transition={{ duration: 0.18 }}
-                        className="text-2xl font-semibold tracking-tight text-neutral-950"
-                      >
-                        {formatCurrency(totalPrice)}
-                      </motion.dd>
-                    </AnimatePresence>
-                  </div>
-                </dl>
-              </section>
-
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <Button
-                  type="button"
-                  size="lg"
-                  className="h-11 flex-1 rounded-full px-6 text-sm font-semibold transition-transform duration-200 motion-safe:hover:-translate-y-px"
-                >
-                  Continue
-                </Button>
-                <Button
-                  type="button"
-                  size="lg"
-                  variant="outline"
-                  className="h-11 flex-1 rounded-full px-6 text-sm font-semibold transition-transform duration-200 motion-safe:hover:-translate-y-px"
-                >
-                  Save Build
-                </Button>
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-sm leading-6 text-neutral-600">
+                    Build selections save automatically on this device for{" "}
+                    {vehicle.name}.
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-10 rounded-full px-4 text-sm font-semibold transition-transform duration-200 motion-safe:hover:-translate-y-px"
+                    onClick={handleResetBuild}
+                  >
+                    Reset build
+                  </Button>
+                </div>
               </div>
             </div>
           </Reveal>

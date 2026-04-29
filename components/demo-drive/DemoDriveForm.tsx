@@ -2,14 +2,19 @@
 
 import { CheckCircle2 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button-link";
 import { demoDriveTimeSlots } from "@/constants/demoDrive";
 import { ROUTES } from "@/constants/routes";
+import {
+  getDemoDriveStorageKey,
+  safeLocalStorageGet,
+  safeLocalStorageSet,
+} from "@/lib/storage";
 import { cn } from "@/lib/utils";
-import type { Vehicle } from "@/types";
+import type { PersistedDemoDriveDraft, Vehicle } from "@/types";
 
 type DemoDriveFormProps = {
   vehicle: Vehicle;
@@ -105,22 +110,81 @@ function formatDate(dateValue: string) {
 
 export function DemoDriveForm({ vehicle }: DemoDriveFormProps) {
   const prefersReducedMotion = useReducedMotion();
+  const demoDriveStorageKey = getDemoDriveStorageKey(vehicle.slug);
+  const hasRestoredDraftRef = useRef(false);
   const [formState, setFormState] = useState<DemoDriveState>(initialFormState);
   const [confirmation, setConfirmation] = useState<ConfirmationSummary | null>(
     null
   );
 
+  useEffect(() => {
+    const storedDraft =
+      safeLocalStorageGet<PersistedDemoDriveDraft>(demoDriveStorageKey);
+
+    if (!storedDraft) {
+      hasRestoredDraftRef.current = true;
+      return;
+    }
+
+    const nextDraft: DemoDriveState = {
+      fullName:
+        typeof storedDraft.fullName === "string"
+          ? storedDraft.fullName
+          : initialFormState.fullName,
+      email:
+        typeof storedDraft.email === "string"
+          ? storedDraft.email
+          : initialFormState.email,
+      phoneNumber:
+        typeof storedDraft.phoneNumber === "string"
+          ? storedDraft.phoneNumber
+          : initialFormState.phoneNumber,
+      location:
+        typeof storedDraft.location === "string"
+          ? storedDraft.location
+          : initialFormState.location,
+      preferredDate:
+        typeof storedDraft.preferredDate === "string"
+          ? storedDraft.preferredDate
+          : initialFormState.preferredDate,
+      preferredTimeSlot: demoDriveTimeSlots.some(
+        (slot) => slot.label === storedDraft.preferredTimeSlot
+      )
+        ? storedDraft.preferredTimeSlot
+        : initialFormState.preferredTimeSlot,
+    };
+
+    const frame = window.requestAnimationFrame(() => {
+      setFormState(nextDraft);
+      hasRestoredDraftRef.current = true;
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [demoDriveStorageKey]);
+
+  useEffect(() => {
+    if (!hasRestoredDraftRef.current) {
+      return;
+    }
+
+    safeLocalStorageSet(demoDriveStorageKey, formState);
+  }, [demoDriveStorageKey, formState]);
+
   function handleFieldChange(
     field: keyof DemoDriveState,
     value: DemoDriveState[keyof DemoDriveState]
   ) {
+    if (confirmation) {
+      setConfirmation(null);
+    }
+
     setFormState((current) => ({
       ...current,
       [field]: value,
     }));
   }
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     setConfirmation({
@@ -129,6 +193,11 @@ export function DemoDriveForm({ vehicle }: DemoDriveFormProps) {
       preferredTimeSlot: formState.preferredTimeSlot,
       location: formState.location,
     });
+  }
+
+  function handleClearDraft() {
+    setFormState(initialFormState);
+    setConfirmation(null);
   }
 
   return (
@@ -142,7 +211,7 @@ export function DemoDriveForm({ vehicle }: DemoDriveFormProps) {
         </h2>
         <p className="mt-3 text-sm leading-7 text-neutral-600 sm:text-base">
           This is a frontend-only mock form. Choose a date and time preference
-          and we&apos;ll store your request locally in the page state.
+          and we&apos;ll keep your draft saved locally on this device.
         </p>
       </div>
 
@@ -226,8 +295,8 @@ export function DemoDriveForm({ vehicle }: DemoDriveFormProps) {
                     Your demo drive request has been saved locally.
                   </h3>
                   <p className="mt-2 text-sm leading-6 text-emerald-800">
-                    Your preferred vehicle, date, and time are stored in this
-                    mock frontend flow for the current session.
+                    Your preferred vehicle, date, and time stay saved on this
+                    device until you update or clear the draft.
                   </p>
                 </div>
               </div>
@@ -278,6 +347,15 @@ export function DemoDriveForm({ vehicle }: DemoDriveFormProps) {
           >
             Schedule Demo Drive
           </Button>
+          <Button
+            type="button"
+            size="lg"
+            variant="outline"
+            className="h-11 rounded-full px-6 text-sm font-semibold transition-transform duration-200 motion-safe:hover:-translate-y-px"
+            onClick={handleClearDraft}
+          >
+            Clear Draft
+          </Button>
           <ButtonLink
             href={ROUTES.vehicleDetails(vehicle.slug)}
             size="lg"
@@ -286,6 +364,10 @@ export function DemoDriveForm({ vehicle }: DemoDriveFormProps) {
           >
             Back to Vehicle Details
           </ButtonLink>
+        </div>
+
+        <div className="rounded-[1.25rem] border border-black/6 bg-neutral-50 px-4 py-3 text-sm leading-6 text-neutral-600">
+          Draft details save automatically on this device for {vehicle.name}.
         </div>
       </form>
     </aside>

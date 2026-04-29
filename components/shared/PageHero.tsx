@@ -55,7 +55,7 @@ export function PageHero({
             <Button
               type="button"
               size="lg"
-              className="h-11 min-w-[220px] rounded-full bg-white px-8 text-sm font-semibold text-neutral-950 transition-[background-color,transform] duration-200 hover:bg-white/90 motion-safe:hover:-translate-y-px"
+              className="h-11 w-full min-w-[220px] rounded-full bg-white px-8 text-sm font-semibold text-neutral-950 transition-[background-color,transform] duration-200 hover:bg-white/90 motion-safe:hover:-translate-y-px sm:w-auto"
             >
               {primaryButtonText}
             </Button>
@@ -64,7 +64,7 @@ export function PageHero({
                 type="button"
                 size="lg"
                 variant="outline"
-                className="h-11 min-w-[220px] rounded-full border-white/25 bg-black/25 px-8 text-sm font-semibold text-white backdrop-blur-sm transition-[background-color,color,transform] duration-200 hover:bg-black/35 hover:text-white motion-safe:hover:-translate-y-px"
+                className="h-11 w-full min-w-[220px] rounded-full border-white/25 bg-black/25 px-8 text-sm font-semibold text-white backdrop-blur-sm transition-[background-color,color,transform] duration-200 hover:bg-black/35 hover:text-white motion-safe:hover:-translate-y-px sm:w-auto"
               >
                 {secondaryButtonText}
               </Button>

@@ -1,6 +1,7 @@
 export const ROUTES = {
   home: "/",
   vehicles: "/vehicles",
+  compare: "/compare",
   energy: "/energy",
   charging: "/charging",
   discover: "/discover",

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { CtaGroup } from "@/components/shared/CtaGroup";
+import { InfoCard } from "@/components/shared/InfoCard";
 import { PageTransition } from "@/components/shared/PageTransition";
 import { PageHero } from "@/components/shared/PageHero";
 import { Reveal } from "@/components/shared/Reveal";
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
   description: "Charge at home or on the road with a growing charging network.",
 };
 
-const chargingHighlights = [
+const chargingModes = [
   {
     eyebrow: "Home",
     title: "Everyday charging at home",
@@ -25,6 +26,27 @@ const chargingHighlights = [
     title: "Confident charging on the move",
     description:
       "Plan longer trips around a clean, fast-charging experience that keeps travel stops short and predictable.",
+  },
+];
+
+const chargingBenefits = [
+  {
+    eyebrow: "01",
+    title: "Overnight-ready routine",
+    description:
+      "Keep charging predictable with a setup built around your normal parking and daily schedule.",
+  },
+  {
+    eyebrow: "02",
+    title: "Route confidence",
+    description:
+      "Frame longer trips as a clear sequence of short stops rather than a separate planning challenge.",
+  },
+  {
+    eyebrow: "03",
+    title: "Simple plug-in experience",
+    description:
+      "Keep the ownership story focused on ease, consistency, and a charger experience that fades into the background.",
   },
 ];
 
@@ -45,7 +67,7 @@ export default function ChargingPage() {
             <SectionHeader
               eyebrow="Charging Flow"
               title="Designed for both routine and range"
-              description="This placeholder charging page rounds out the product story with a simple split between home charging and on-road support."
+              description="Shape the charging story around two familiar moments: waking up ready to drive and staying confident on longer routes."
               align="left"
             />
           </Reveal>
@@ -55,41 +77,66 @@ export default function ChargingPage() {
             delayChildren={0.03}
             staggerChildren={0.08}
           >
-            {chargingHighlights.map((item) => (
-              <article
+            {chargingModes.map((item) => (
+              <InfoCard
                 key={item.title}
-                className="rounded-[2rem] border border-black/6 bg-neutral-50 p-6 shadow-[0_16px_40px_rgba(17,17,17,0.06)] transition-[transform,box-shadow,border-color] duration-300 ease-out motion-safe:hover:-translate-y-px motion-safe:hover:shadow-[0_20px_44px_rgba(17,17,17,0.08)] sm:p-8"
+                eyebrow={item.eyebrow}
+                title={item.title}
+                description={item.description}
               >
-                <p className="text-sm font-semibold uppercase tracking-[0.28em] text-neutral-500">
-                  {item.eyebrow}
+                <p className="text-sm font-semibold text-neutral-950">
+                  Built to feel as straightforward as the rest of the product experience.
                 </p>
-                <h3 className="mt-4 text-2xl font-semibold tracking-tight text-neutral-950">
-                  {item.title}
-                </h3>
-                <p className="mt-4 text-sm leading-7 text-neutral-600 sm:text-base">
-                  {item.description}
-                </p>
-              </article>
+              </InfoCard>
             ))}
           </StaggerGroup>
         </div>
       </section>
 
-      <section className="bg-neutral-50 pb-20 pt-4 sm:pb-24">
+      <section className="bg-neutral-50 py-16 sm:py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <Reveal className="max-w-3xl">
+            <SectionHeader
+              eyebrow="Benefits"
+              title="A cleaner charging rhythm"
+              description="Use lightweight placeholder content to show how charging can feel integrated into ownership rather than treated as a separate task."
+              align="left"
+            />
+          </Reveal>
+
+          <StaggerGroup
+            className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3"
+            delayChildren={0.03}
+            staggerChildren={0.07}
+          >
+            {chargingBenefits.map((item) => (
+              <InfoCard
+                key={item.title}
+                eyebrow={item.eyebrow}
+                title={item.title}
+                description={item.description}
+                className="bg-white"
+              />
+            ))}
+          </StaggerGroup>
+        </div>
+      </section>
+
+      <section className="bg-white pb-20 pt-4 sm:pb-24">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <Reveal>
-            <div className="rounded-[2rem] border border-black/6 bg-white px-6 py-8 text-center shadow-[0_18px_48px_rgba(17,17,17,0.06)] sm:px-8 sm:py-10">
+            <div className="rounded-[2rem] border border-black/6 bg-neutral-50 px-6 py-8 text-center shadow-[0_18px_48px_rgba(17,17,17,0.06)] sm:px-8 sm:py-10">
               <SectionHeader
                 eyebrow="Plan Ahead"
                 title="Connect charging to the rest of the ownership flow"
-                description="Keep this section lightweight and frontend-only while still presenting charging as a thoughtful part of the overall experience."
+                description="Keep the page premium and product-like by linking charging back to model exploration, ownership planning, and the broader frontend story."
               />
               <div className="mt-8">
                 <CtaGroup
-                  primaryLabel="Explore Vehicles"
-                  primaryHref={ROUTES.vehicles}
-                  secondaryLabel="Browse Shop"
-                  secondaryHref={ROUTES.shop}
+                  primaryLabel="Find Chargers"
+                  primaryHref={ROUTES.discover}
+                  secondaryLabel="Learn More"
+                  secondaryHref={ROUTES.vehicles}
                 />
               </div>
             </div>

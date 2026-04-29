@@ -52,7 +52,7 @@ export function CtaGroup({
   return (
     <div
       className={cn(
-        "flex flex-col gap-3 sm:flex-row sm:flex-wrap",
+        "flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center",
         align === "center" ? "sm:justify-center" : "sm:justify-start"
       )}
     >
@@ -64,7 +64,7 @@ export function CtaGroup({
             size: "lg",
             variant: item.variant === "outline" ? "outline" : "default",
             className: cn(
-              "h-11 rounded-full px-6 text-sm font-semibold transition-[background-color,border-color,color,transform] duration-200 motion-safe:hover:-translate-y-px",
+              "h-11 w-full rounded-full px-6 text-sm font-semibold transition-[background-color,border-color,color,transform] duration-200 motion-safe:hover:-translate-y-px sm:w-auto",
               item.variant === "primary"
                 ? "bg-neutral-950 text-white hover:bg-neutral-800"
                 : "border-neutral-300 bg-white text-neutral-950 hover:bg-neutral-100"

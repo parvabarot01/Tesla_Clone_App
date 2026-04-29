@@ -57,6 +57,21 @@ export type Vehicle = {
   startingPrice: string;
 };
 
+export type PersistedBuildSelection = {
+  interiorId: string;
+  paintId: string;
+  wheelsId: string;
+};
+
+export type PersistedDemoDriveDraft = {
+  email: string;
+  fullName: string;
+  location: string;
+  phoneNumber: string;
+  preferredDate: string;
+  preferredTimeSlot: string;
+};
+
 export type PageHero = {
   eyebrow: string;
   title: string;

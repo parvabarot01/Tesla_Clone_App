@@ -11,9 +11,9 @@ export function LoadingSection({
     <section
       aria-live="polite"
       aria-busy="true"
-      className="flex min-h-[50svh] items-center justify-center bg-neutral-50 px-4 py-16 sm:px-6 lg:px-8"
+      className="flex min-h-[46svh] items-center justify-center bg-neutral-50 px-4 py-16 sm:px-6 lg:px-8"
     >
-      <div className="mx-auto flex max-w-md flex-col items-center text-center">
+      <div className="mx-auto flex max-w-xl flex-col items-center text-center">
         <div
           aria-hidden="true"
           className="size-10 rounded-full border-2 border-neutral-200 border-t-neutral-950 motion-safe:animate-spin"
