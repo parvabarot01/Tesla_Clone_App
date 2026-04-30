@@ -1,0 +1,18 @@
+
+> tesla-clone@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.56.1:3000
+✓ Ready in 449ms
+Creating turbopack project {
+  dir: 'C:\\Users\\parva\\OneDrive\\Desktop\\Project\\Python_Fresh_Start\\tesla-clone',
+  testMode: true
+}
+
+ POST /api/demo-drive 400 in 163ms (next.js: 135ms, application-code: 28ms)
+ POST /api/demo-drive 200 in 305ms (next.js: 298ms, application-code: 7ms)
+ GET /demo-drive/model-3 200 in 1287ms (next.js: 834ms, generate-params: 513ms, application-code: 454ms)
+ GET /api/vehicles/model-3 200 in 608ms (next.js: 598ms, application-code: 10ms)
+[?25h

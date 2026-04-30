@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+import { ApiRequestError } from "@/lib/fetcher";
 import { Reveal } from "@/components/shared/Reveal";
 import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button-link";
@@ -23,14 +24,23 @@ import {
 } from "@/constants/orderOptions";
 import { ROUTES } from "@/constants/routes";
 import {
+  buildOrderPriceBreakdown,
+  createOrderPayload,
   formatCurrency,
   getOrderPreviewCandidates,
-  getOrderPricingBreakdown,
   getSelectedOrderOption,
+  submitOrderPayload,
+  validateOrderSelection,
 } from "@/lib/order";
 import { getBuildStorageKey, safeLocalStorageGet, safeLocalStorageSet } from "@/lib/storage";
 import { cn } from "@/lib/utils";
-import type { PersistedBuildSelection, Vehicle } from "@/types";
+import type {
+  OrderPayload,
+  OrderSelection,
+  OrderValidationError,
+  PersistedBuildSelection,
+  Vehicle,
+} from "@/types";
 
 type OptionGroupProps = {
   description: string;
@@ -165,6 +175,12 @@ type OrderConfiguratorProps = {
   vehicle: Vehicle;
 };
 
+type OrderFeedbackState =
+  | { kind: "idle" }
+  | { kind: "saved"; message: string }
+  | { kind: "error"; errors: OrderValidationError[]; message: string }
+  | { kind: "success"; message: string; order: OrderPayload };
+
 type PreviewMediaProps = {
   category: string;
   paintLabel: string;
@@ -172,6 +188,24 @@ type PreviewMediaProps = {
   previewCandidates: string[];
   vehicleName: string;
 };
+
+function isOrderValidationError(value: unknown): value is OrderValidationError {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "field" in value &&
+    "message" in value &&
+    typeof value.field === "string" &&
+    typeof value.message === "string"
+  );
+}
+
+function formatSubmittedAt(value: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
 
 function PreviewMedia({
   category,
@@ -260,6 +294,8 @@ export function OrderConfigurator({ vehicle }: OrderConfiguratorProps) {
   );
   const [selectedWheelsId, setSelectedWheelsId] = useState(defaultWheelsId);
   const [selectedInteriorId, setSelectedInteriorId] = useState(defaultInteriorId);
+  const [feedback, setFeedback] = useState<OrderFeedbackState>({ kind: "idle" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const storedBuild =
@@ -304,8 +340,14 @@ export function OrderConfigurator({ vehicle }: OrderConfiguratorProps) {
     interiorOptions,
     selectedInteriorId
   );
+  const currentSelection: OrderSelection = {
+    vehicleSlug: vehicle.slug,
+    paintId: selectedPaintId,
+    wheelId: selectedWheelsId,
+    interiorId: selectedInteriorId,
+  };
   const pricing = selectedPaint
-    ? getOrderPricingBreakdown(
+    ? buildOrderPriceBreakdown(
         vehicle,
         selectedPaint,
         selectedWheels,
@@ -314,7 +356,7 @@ export function OrderConfigurator({ vehicle }: OrderConfiguratorProps) {
     : {
         basePrice: 0,
         paintPrice: 0,
-        wheelsPrice: 0,
+        wheelPrice: 0,
         interiorPrice: 0,
         totalPrice: 0,
       };
@@ -339,10 +381,82 @@ export function OrderConfigurator({ vehicle }: OrderConfiguratorProps) {
     selectedWheels.id,
   ]);
 
+  function handlePaintSelect(paintId: string) {
+    setFeedback({ kind: "idle" });
+    setSelectedPaintId(paintId);
+  }
+
+  function handleWheelsSelect(wheelsId: string) {
+    setFeedback({ kind: "idle" });
+    setSelectedWheelsId(wheelsId);
+  }
+
+  function handleInteriorSelect(interiorId: string) {
+    setFeedback({ kind: "idle" });
+    setSelectedInteriorId(interiorId);
+  }
+
   function handleResetBuild() {
+    setFeedback({ kind: "idle" });
     setSelectedPaintId(defaultPaintId);
     setSelectedWheelsId(defaultWheelsId);
     setSelectedInteriorId(defaultInteriorId);
+  }
+
+  function handleSaveBuild() {
+    safeLocalStorageSet(buildStorageKey, {
+      paintId: selectedPaintId,
+      wheelsId: selectedWheelsId,
+      interiorId: selectedInteriorId,
+    } satisfies PersistedBuildSelection);
+
+    setFeedback({
+      kind: "saved",
+      message: `Build saved locally for ${vehicle.name}.`,
+    });
+  }
+
+  async function handleContinue() {
+    const validation = validateOrderSelection(currentSelection);
+
+    if (!validation.isValid) {
+      setFeedback({
+        kind: "error",
+        message: "Review the selected configuration before continuing.",
+        errors: validation.errors,
+      });
+      return;
+    }
+
+    const payload = createOrderPayload(validation);
+
+    setIsSubmitting(true);
+
+    try {
+      const result = await submitOrderPayload(payload);
+
+      setFeedback({
+        kind: "success",
+        message: result.message,
+        order: result.order,
+      });
+    } catch (error) {
+      const errors =
+        error instanceof ApiRequestError && Array.isArray(error.details)
+          ? error.details.filter(isOrderValidationError)
+          : [];
+
+      setFeedback({
+        kind: "error",
+        message:
+          error instanceof ApiRequestError
+            ? error.message
+            : "Unable to prepare the mock order right now.",
+        errors,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -519,7 +633,7 @@ export function OrderConfigurator({ vehicle }: OrderConfiguratorProps) {
                         </span>
                       </dt>
                       <dd className="font-semibold text-neutral-950">
-                        {formatCurrency(pricing.wheelsPrice)}
+                        {formatCurrency(pricing.wheelPrice)}
                       </dd>
                     </div>
                     <div className="flex items-center justify-between gap-4">
@@ -588,7 +702,7 @@ export function OrderConfigurator({ vehicle }: OrderConfiguratorProps) {
                 icon={Palette}
                 options={paintOptions}
                 selectedId={selectedPaintId}
-                onSelect={setSelectedPaintId}
+                onSelect={handlePaintSelect}
               />
 
               <OptionGroup
@@ -597,7 +711,7 @@ export function OrderConfigurator({ vehicle }: OrderConfiguratorProps) {
                 icon={CircleDot}
                 options={wheelOptions}
                 selectedId={selectedWheelsId}
-                onSelect={setSelectedWheelsId}
+                onSelect={handleWheelsSelect}
               />
 
               <OptionGroup
@@ -606,7 +720,7 @@ export function OrderConfigurator({ vehicle }: OrderConfiguratorProps) {
                 icon={Sofa}
                 options={interiorOptions}
                 selectedId={selectedInteriorId}
-                onSelect={setSelectedInteriorId}
+                onSelect={handleInteriorSelect}
               />
 
               <div className="rounded-[1.75rem] border border-black/6 bg-neutral-50 p-5 sm:p-6">
@@ -614,19 +728,65 @@ export function OrderConfigurator({ vehicle }: OrderConfiguratorProps) {
                   <Button
                     type="button"
                     size="lg"
+                    disabled={isSubmitting}
+                    onClick={handleContinue}
                     className="h-11 flex-1 rounded-full px-6 text-sm font-semibold transition-transform duration-200 motion-safe:hover:-translate-y-px"
                   >
-                    Continue
+                    {isSubmitting ? "Preparing Order..." : "Continue"}
                   </Button>
                   <Button
                     type="button"
                     size="lg"
                     variant="outline"
+                    onClick={handleSaveBuild}
                     className="h-11 flex-1 rounded-full px-6 text-sm font-semibold transition-transform duration-200 motion-safe:hover:-translate-y-px"
                   >
                     Save Build
                   </Button>
                 </div>
+
+                {feedback.kind !== "idle" ? (
+                  <div
+                    aria-live="polite"
+                    className={cn(
+                      "mt-4 rounded-[1.35rem] border px-4 py-4 text-sm leading-6 shadow-[0_16px_34px_rgba(17,17,17,0.05)] sm:px-5",
+                      feedback.kind === "success"
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-950"
+                        : feedback.kind === "saved"
+                          ? "border-sky-200 bg-sky-50 text-sky-950"
+                          : "border-rose-200 bg-rose-50 text-rose-950"
+                    )}
+                  >
+                    <p className="font-semibold">{feedback.message}</p>
+
+                    {feedback.kind === "error" && feedback.errors.length > 0 ? (
+                      <ul className="mt-2 space-y-1 text-sm">
+                        {feedback.errors.map((error) => (
+                          <li key={`${error.field}-${error.message}`}>
+                            {error.message}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+
+                    {feedback.kind === "success" ? (
+                      <div className="mt-3 space-y-1 text-sm">
+                        <p>
+                          Mock order prepared for {feedback.order.vehicleName} at{" "}
+                          {formatCurrency(feedback.order.pricing.totalPrice)}.
+                        </p>
+                        <p>
+                          Selection: {selectedPaint?.label}, {selectedWheels.label},{" "}
+                          {selectedInterior.label}.
+                        </p>
+                        <p>
+                          Submitted {formatSubmittedAt(feedback.order.submittedAt)}.
+                        </p>
+                        <p>Nothing was charged or stored server-side.</p>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
 
                 <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-sm leading-6 text-neutral-600">

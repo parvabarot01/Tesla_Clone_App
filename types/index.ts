@@ -57,20 +57,88 @@ export type Vehicle = {
   startingPrice: string;
 };
 
+export type ApiSuccessResponse<T> = {
+  success: true;
+  data: T;
+};
+
+export type ApiErrorResponse = {
+  success: false;
+  error: {
+    code: string;
+    message: string;
+    details?: unknown;
+  };
+};
+
+export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
+
+export type OrderSelection = {
+  vehicleSlug: string;
+  paintId: string;
+  wheelId: string;
+  interiorId: string;
+};
+
+export type OrderPriceBreakdown = {
+  basePrice: number;
+  paintPrice: number;
+  wheelPrice: number;
+  interiorPrice: number;
+  totalPrice: number;
+};
+
+export type OrderPayload = {
+  vehicleSlug: string;
+  vehicleName: string;
+  selection: OrderSelection;
+  pricing: OrderPriceBreakdown;
+  submittedAt: string;
+};
+
+export type OrderValidationError = {
+  field: string;
+  message: string;
+};
+
+export type DemoDriveFormValues = {
+  vehicleSlug: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  location: string;
+  preferredDate: string;
+  preferredTimeSlot: string;
+};
+
+export type DemoDrivePayload = {
+  vehicleSlug: string;
+  vehicleName: string;
+  form: DemoDriveFormValues;
+  submittedAt: string;
+};
+
+export type DemoDriveValidationError = {
+  field: string;
+  message: string;
+};
+
+export type DemoDriveConfirmation = {
+  accepted: boolean;
+  referenceId: string;
+  vehicleSlug: string;
+  preferredDate: string;
+  preferredTimeSlot: string;
+  location: string;
+};
+
 export type PersistedBuildSelection = {
   interiorId: string;
   paintId: string;
   wheelsId: string;
 };
 
-export type PersistedDemoDriveDraft = {
-  email: string;
-  fullName: string;
-  location: string;
-  phoneNumber: string;
-  preferredDate: string;
-  preferredTimeSlot: string;
-};
+export type PersistedDemoDriveDraft = Omit<DemoDriveFormValues, "vehicleSlug">;
 
 export type PageHero = {
   eyebrow: string;

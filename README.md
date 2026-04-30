@@ -1,164 +1,85 @@
 # Tesla Clone
 
-Tesla-inspired frontend clone built with Next.js. This project is frontend-only for now and is designed to scale toward backend services, authentication, database storage, payments, testing, and production deployment later.
+Tesla-inspired clone app built with Next.js App Router, TypeScript, Tailwind CSS, shadcn/ui, Lucide React, and Framer Motion.
 
-Real Tesla assets are not used. Image references are local placeholder paths under `public/images`.
-
-## Tech Stack
-
-- Next.js App Router
-- TypeScript
-- Tailwind CSS
-- shadcn/ui
-- Lucide React
-- Framer Motion
-- Static local data for V0, V0.1, V0.2, V0.3, and V0.4
+This project remains mock and frontend-focused for now. It does not include a real database, authentication, payments, or deployment. Real Tesla copyrighted images are not used.
 
 ## Current Version
 
-- Current version: V0.4
-- Status: Frontend buying flow depth, product exploration, and ecosystem-page polish are complete for this phase.
-- Backend: Not implemented yet
-- Deployment: Not implemented yet
+- V0.5
 
 ## Progress
 
 V0:
-- Core Tesla-inspired homepage and responsive shell.
+- Homepage and responsive app shell.
 
 V0.1:
-- Multi-page vehicle, order, and demo-drive frontend flows.
+- Multi-page frontend for vehicles, ordering, and demo drives.
 
 V0.2:
 - Shared services, constants, and reusable UI states/components.
 
 V0.3:
-- Shared motion system
-- Homepage transition polish
-- Scroll-aware navbar behavior
-- Animated mobile menu
-- Vehicle, detail, configurator, and demo-drive polish
-- Energy, charging, discover, and shop page polish
-- Final visual and motion consistency pass
+- Motion system and polished cross-page UX.
 
 V0.4:
-- Advanced configurator depth
-- Paint-based preview switching
-- Selected build summary
-- Local persistence for configurator selections and demo-drive drafts
-- Vehicle comparison experience
-- Compare 2 to 4 vehicles across key specs and pricing
-- Comparison route added at `/compare`
-- Richer supporting pages for energy, charging, discover, and shop
-- Final frontend readiness pass
+- Deeper configurator flow, comparison experience, local persistence, and supporting pages.
 
-## Project Structure
+V0.5:
+- Mock API foundation
+- Vehicle API integration through the service layer
+- Order validation and payload preparation
+- Demo-drive validation and submission preparation
+- Final backend-prep cleanup
+
+## API Foundation
+
+- `GET /api/vehicles` returns the mock vehicle catalog in a consistent JSON response envelope.
+- `GET /api/vehicles/[slug]` returns a single vehicle by slug or a typed error payload.
+- `POST /api/orders` accepts a mock order payload, validates the selected build, and returns a confirmation response without persistence.
+- `POST /api/demo-drive` accepts a mock demo-drive payload, validates the request, and returns a confirmation object without real scheduling.
+- `vehicleService` remains the main vehicle data access boundary while helpers prepare typed order and demo-drive submissions.
+
+## Key Structure
 
 ```text
 app/
-  page.tsx
-  layout.tsx
-  globals.css
+  api/
+    demo-drive/
+      route.ts
+    orders/
+      route.ts
+    vehicles/
+      route.ts
+      [slug]/
+        route.ts
   compare/
-    page.tsx
-  vehicles/
-    page.tsx
-    loading.tsx
-    error.tsx
-    [slug]/
-      page.tsx
-      loading.tsx
-      error.tsx
-  order/
-    [slug]/
-      page.tsx
-      loading.tsx
-      error.tsx
   demo-drive/
-    [slug]/
-      page.tsx
-      loading.tsx
-      error.tsx
   energy/
-    page.tsx
-  charging/
-    page.tsx
-  discover/
-    page.tsx
-  shop/
-    page.tsx
-
-components/
-  compare/
-    CompareSelector.tsx
-    CompareTable.tsx
-  layout/
-    Navbar.tsx
-    MobileMenu.tsx
-  home/
-    HeroSection.tsx
-    PromoCards.tsx
-    FeatureGrid.tsx
-    EnergySection.tsx
-  vehicles/
-    VehicleCard.tsx
-    VehicleGrid.tsx
   order/
-    OrderConfigurator.tsx
-  demo-drive/
-    DemoDriveForm.tsx
-  shared/
-    PageHero.tsx
-    SectionHeader.tsx
-    InfoCard.tsx
-    SpecGrid.tsx
-    CtaGroup.tsx
-    LoadingSection.tsx
-    EmptyState.tsx
-    ErrorState.tsx
-    Reveal.tsx
-    StaggerGroup.tsx
-    PageTransition.tsx
-  ui/
-    button.tsx
-
-config/
-  site.ts
+  vehicles/
 
 constants/
-  routes.ts
-  orderOptions.ts
+  api.ts
   demoDrive.ts
+  orderOptions.ts
 
 data/
-  home.ts
   vehicles.ts
+
+lib/
+  api.ts
+  demoDrive.ts
+  fetcher.ts
+  order.ts
+  storage.ts
 
 services/
   vehicleService.ts
 
 types/
   index.ts
-
-lib/
-  order.ts
-  storage.ts
-  motion.ts
-  utils.ts
 ```
-
-## Routes
-
-- `/`
-- `/compare`
-- `/vehicles`
-- `/vehicles/[slug]`
-- `/order/[slug]`
-- `/demo-drive/[slug]`
-- `/energy`
-- `/charging`
-- `/discover`
-- `/shop`
 
 ## Local Setup
 
@@ -167,34 +88,29 @@ npm install
 npm run dev
 ```
 
-Open the app locally:
-
-```text
-http://localhost:3000
-```
+Open locally at `http://localhost:3000`.
 
 ## Available Scripts
 
-- `npm run dev` - start the local development server
+- `npm run dev` - start the development server
 - `npm run build` - create a production build
 - `npm run lint` - run ESLint
 
-## Backend-Ready Architecture
+## Next Major Milestone
 
-The vehicle service currently reads from local static data in `data/vehicles.ts`. Pages call `vehicleService` asynchronously, which keeps the UI ready for future API or database calls without rewriting the page components.
+- Level 7: Real Backend + Database
 
-This means a later backend can replace the service internals while the route pages, shared UI components, and vehicle UI stay mostly unchanged.
+## Roadmap
 
-## Future Roadmap
-
-- V0.5: Mock API layer, validation, and backend integration prep
-- Level 7 / Next Major Milestone: Real backend + database
-- V1: Backend, auth, payments, testing, deployment, and production hardening
+- Level 7 / Next: PostgreSQL + Prisma + real API/data persistence
+- Level 8: Auth + User Dashboard
+- Level 9: Payments + Admin
+- V1: Production hardening, testing, deployment
 
 ## Disclaimer
 
-This is a Tesla-inspired educational project. It is not affiliated with Tesla. Placeholder image paths are used instead of copyrighted Tesla assets.
+This is a Tesla-inspired educational project and is not affiliated with Tesla.
 
 ## Development Notes
 
-V0.4 completed a deeper, more realistic frontend product experience and prepared the app for backend-oriented work.
+V0.5 completed the transition from a frontend-only architecture into a backend-ready mock API structure for both the buying flow and the demo-drive flow.
