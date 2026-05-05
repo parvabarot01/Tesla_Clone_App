@@ -2,11 +2,11 @@
 
 Tesla-inspired clone app built with Next.js App Router, TypeScript, Tailwind CSS, shadcn/ui, Lucide React, and Framer Motion.
 
-This project remains mock and frontend-focused for now. It does not include a real database, authentication, payments, or deployment. Real Tesla copyrighted images are not used.
+The UI and core product flows are complete through V0.5. V0.6 is moving the app from mock-only backend behavior into real PostgreSQL-backed persistence with Prisma while keeping the current frontend behavior and routes intact. This project still does not include authentication, payments, deployment, or real Tesla copyrighted images.
 
 ## Current Version
 
-- V0.5
+- V0.6
 
 ## Progress
 
@@ -26,85 +26,60 @@ V0.4:
 - Deeper configurator flow, comparison experience, local persistence, and supporting pages.
 
 V0.5:
-- Mock API foundation
-- Vehicle API integration through the service layer
-- Order validation and payload preparation
-- Demo-drive validation and submission preparation
-- Final backend-prep cleanup
+- Mock API foundation, typed response contracts, and backend-ready validation/payload preparation.
 
-## API Foundation
-
-- `GET /api/vehicles` returns the mock vehicle catalog in a consistent JSON response envelope.
-- `GET /api/vehicles/[slug]` returns a single vehicle by slug or a typed error payload.
-- `POST /api/orders` accepts a mock order payload, validates the selected build, and returns a confirmation response without persistence.
-- `POST /api/demo-drive` accepts a mock demo-drive payload, validates the request, and returns a confirmation object without real scheduling.
-- `vehicleService` remains the main vehicle data access boundary while helpers prepare typed order and demo-drive submissions.
-
-## Key Structure
-
-```text
-app/
-  api/
-    demo-drive/
-      route.ts
-    orders/
-      route.ts
-    vehicles/
-      route.ts
-      [slug]/
-        route.ts
-  compare/
-  demo-drive/
-  energy/
-  order/
-  vehicles/
-
-constants/
-  api.ts
-  demoDrive.ts
-  orderOptions.ts
-
-data/
-  vehicles.ts
-
-lib/
-  api.ts
-  demoDrive.ts
-  fetcher.ts
-  order.ts
-  storage.ts
-
-services/
-  vehicleService.ts
-
-types/
-  index.ts
-```
+V0.6:
+- PostgreSQL + Prisma foundation
+- Seeded vehicle data
+- Vehicle database integration
+- Real order persistence
+- Real demo-drive persistence
+- Core product flows now save real records
+- Backend cleanup and readiness pass
 
 ## Local Setup
 
 ```bash
 npm install
+```
+
+## Local Backend Setup
+
+1. Copy `.env.example` to `.env`
+2. Add your PostgreSQL `DATABASE_URL`
+3. Run:
+
+```bash
+npx prisma generate
+npx prisma migrate dev --name init
+npx prisma db seed
+```
+
+4. Start the app:
+
+```bash
 npm run dev
 ```
 
-Open locally at `http://localhost:3000`.
+Vehicles must be seeded for the catalog pages to show data. Order submissions and demo-drive requests are stored in the database once submitted.
 
 ## Available Scripts
 
 - `npm run dev` - start the development server
 - `npm run build` - create a production build
 - `npm run lint` - run ESLint
+- `npm run prisma:generate` - generate the Prisma client
+- `npm run prisma:migrate` - create and apply a development migration
+- `npm run prisma:seed` - seed the vehicle catalog
 
-## Next Major Milestone
+## Next Major Version
 
-- Level 7: Real Backend + Database
+- V0.7: Auth + User Dashboard foundation
 
 ## Roadmap
 
-- Level 7 / Next: PostgreSQL + Prisma + real API/data persistence
-- Level 8: Auth + User Dashboard
-- Level 9: Payments + Admin
+- V0.7: Auth + User Dashboard
+- V0.8: Payments + Admin
 - V1: Production hardening, testing, deployment
 
 ## Disclaimer
@@ -113,4 +88,4 @@ This is a Tesla-inspired educational project and is not affiliated with Tesla.
 
 ## Development Notes
 
-V0.5 completed the transition from a frontend-only architecture into a backend-ready mock API structure for both the buying flow and the demo-drive flow.
+V0.6 completed the first real backend/data layer and prepared the app for account-based features next.

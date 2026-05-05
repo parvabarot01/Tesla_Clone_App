@@ -2,7 +2,7 @@ import {
   createApiErrorResponse,
   createApiSuccessResponse,
 } from "@/lib/api";
-import { vehicleService } from "@/services/vehicleService";
+import { getVehicleBySlugFromDatabase } from "@/lib/vehicleQueries";
 
 type VehicleRouteContext = {
   params: Promise<{ slug: string }>;
@@ -23,9 +23,7 @@ export async function GET(
       );
     }
 
-    const vehicle = await vehicleService.getVehicleBySlug(slug, {
-      source: "local",
-    });
+    const vehicle = await getVehicleBySlugFromDatabase(slug);
 
     if (!vehicle) {
       return createApiErrorResponse(
@@ -38,7 +36,7 @@ export async function GET(
     return createApiSuccessResponse(vehicle);
   } catch {
     return createApiErrorResponse(
-      "INTERNAL_SERVER_ERROR",
+      "VEHICLE_FETCH_FAILED",
       "Unable to load vehicle details right now.",
       { status: 500 }
     );

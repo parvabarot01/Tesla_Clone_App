@@ -17,7 +17,7 @@ type DemoDrivePageProps = {
 
 export async function generateStaticParams() {
   const vehicleSlugs = await vehicleService.getVehicleSlugs({
-    source: "local",
+    source: "auto",
   });
 
   return vehicleSlugs.map((vehicleSlug) => ({

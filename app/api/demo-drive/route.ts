@@ -2,17 +2,22 @@ import {
   createApiErrorResponse,
   createApiSuccessResponse,
   isRecord,
+  readRecord,
   readString,
 } from "@/lib/api";
 import {
-  createDemoDrivePayload,
   createDemoDriveReferenceId,
   validateDemoDriveForm,
 } from "@/lib/demoDrive";
+import {
+  mapPersistedDemoDriveToConfirmation,
+  mapValidatedDemoDriveToCreateInput,
+} from "@/lib/demoDriveMappers";
+import { getPrismaClient } from "@/lib/prisma";
 import type { DemoDriveFormValues } from "@/types";
 
 function getDemoDriveFormFromPayload(body: Record<string, unknown>) {
-  const formSource = isRecord(body.form) ? body.form : {};
+  const formSource = readRecord(body.form);
   const topLevelVehicleSlug = readString(body.vehicleSlug);
   const nestedVehicleSlug = readString(formSource.vehicleSlug);
 
@@ -28,48 +33,79 @@ function getDemoDriveFormFromPayload(body: Record<string, unknown>) {
 }
 
 export async function POST(request: Request) {
+  let body: unknown;
+
   try {
-    const body = (await request.json()) as unknown;
-
-    if (!isRecord(body)) {
-      return createApiErrorResponse(
-        "INVALID_DEMO_DRIVE_PAYLOAD",
-        "A valid demo drive payload is required.",
-        { status: 400 }
-      );
-    }
-
-    const form = getDemoDriveFormFromPayload(body);
-    const validation = validateDemoDriveForm(form);
-
-    if (!validation.isValid) {
-      return createApiErrorResponse(
-        "INVALID_DEMO_DRIVE_FORM",
-        "Review the demo drive request and try again.",
-        {
-          details: validation.errors,
-          status: 400,
-        }
-      );
-    }
-
-    const submittedAt = readString(body.submittedAt) || undefined;
-    const payload = createDemoDrivePayload(validation, submittedAt);
-    const confirmation = {
-      accepted: true,
-      referenceId: createDemoDriveReferenceId(payload.vehicleSlug),
-      vehicleSlug: payload.vehicleSlug,
-      preferredDate: payload.form.preferredDate,
-      preferredTimeSlot: payload.form.preferredTimeSlot,
-      location: payload.form.location,
-    };
-
-    return createApiSuccessResponse(confirmation);
+    body = (await request.json()) as unknown;
   } catch {
     return createApiErrorResponse(
       "INVALID_DEMO_DRIVE_REQUEST",
       "Unable to process the demo drive request.",
       { status: 400 }
+    );
+  }
+
+  if (!isRecord(body)) {
+    return createApiErrorResponse(
+      "INVALID_DEMO_DRIVE_PAYLOAD",
+      "A valid demo drive payload is required.",
+      { status: 400 }
+    );
+  }
+
+  const form = getDemoDriveFormFromPayload(body);
+  const validation = validateDemoDriveForm(form);
+
+  if (!validation.isValid) {
+    return createApiErrorResponse(
+      "INVALID_DEMO_DRIVE_FORM",
+      "Review the demo drive request and try again.",
+      {
+        details: validation.errors,
+        status: 400,
+      }
+    );
+  }
+
+  const submittedAt = readString(body.submittedAt) || new Date().toISOString();
+  const referenceId =
+    readString(body.referenceId) ||
+    createDemoDriveReferenceId(validation.form.vehicleSlug);
+
+  try {
+    const prisma = getPrismaClient();
+    const vehicle = await prisma.vehicle.findUnique({
+      where: {
+        slug: validation.form.vehicleSlug,
+      },
+    });
+
+    if (!vehicle) {
+      return createApiErrorResponse(
+        "DEMO_DRIVE_VEHICLE_NOT_FOUND",
+        "The selected vehicle is no longer available.",
+        { status: 404 }
+      );
+    }
+
+    const demoDriveRequest = await prisma.demoDriveRequest.create({
+      data: mapValidatedDemoDriveToCreateInput(
+        validation,
+        vehicle,
+        referenceId,
+        submittedAt
+      ),
+    });
+
+    return createApiSuccessResponse(
+      mapPersistedDemoDriveToConfirmation(demoDriveRequest),
+      { status: 201 }
+    );
+  } catch {
+    return createApiErrorResponse(
+      "DEMO_DRIVE_PERSIST_FAILED",
+      "Unable to save the demo drive request right now.",
+      { status: 500 }
     );
   }
 }

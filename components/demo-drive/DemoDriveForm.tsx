@@ -103,6 +103,13 @@ function formatDate(dateValue: string) {
   }).format(parsedDate);
 }
 
+function formatSubmittedAt(value: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
 function getStoredString(
   draft: Record<string, unknown>,
   key: string,
@@ -262,7 +269,7 @@ export function DemoDriveForm({ vehicle }: DemoDriveFormProps) {
       setSubmissionError(
         error instanceof ApiRequestError
           ? error.message
-          : "Unable to prepare your demo drive request right now."
+          : "Unable to save your demo drive request right now."
       );
       setConfirmation(null);
     } finally {
@@ -288,8 +295,8 @@ export function DemoDriveForm({ vehicle }: DemoDriveFormProps) {
           Schedule your {vehicle.name}
         </h2>
         <p className="mt-3 text-sm leading-7 text-neutral-600 sm:text-base">
-          This is a frontend-only mock form. We validate your request, prepare a
-          typed payload, and return a mock confirmation without real scheduling.
+          Submit your preferred visit details and we will save a real demo-drive
+          request record while keeping this flow lightweight and frontend-first.
         </p>
       </div>
 
@@ -411,12 +418,12 @@ export function DemoDriveForm({ vehicle }: DemoDriveFormProps) {
                     id="demo-drive-confirmation-heading"
                     className="text-lg font-semibold tracking-tight text-emerald-900"
                   >
-                    Your mock demo drive request is ready.
+                    Your demo drive request has been saved.
                   </h3>
                   <p className="mt-2 text-sm leading-6 text-emerald-800">
-                    This confirmation is mock-only. No real appointment or email
-                    was created, and the saved draft on this device has been
-                    cleared.
+                    A real demo-drive request record was created. No scheduling
+                    or email confirmation is included yet, and the saved draft
+                    on this device has been cleared.
                   </p>
                 </div>
               </div>
@@ -435,7 +442,7 @@ export function DemoDriveForm({ vehicle }: DemoDriveFormProps) {
                     Vehicle
                   </dt>
                   <dd className="mt-2 text-sm font-medium text-emerald-950 sm:text-base">
-                    {vehicle.name}
+                    {confirmation.vehicleName}
                   </dd>
                 </div>
                 <div>
@@ -460,6 +467,14 @@ export function DemoDriveForm({ vehicle }: DemoDriveFormProps) {
                   </dt>
                   <dd className="mt-2 text-sm font-medium text-emerald-950 sm:text-base">
                     {confirmation.location}
+                  </dd>
+                </div>
+                <div className="sm:col-span-2">
+                  <dt className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
+                    Submitted
+                  </dt>
+                  <dd className="mt-2 text-sm font-medium text-emerald-950 sm:text-base">
+                    {formatSubmittedAt(confirmation.submittedAt)}
                   </dd>
                 </div>
               </dl>
@@ -496,7 +511,7 @@ export function DemoDriveForm({ vehicle }: DemoDriveFormProps) {
             disabled={isSubmitting}
             className="h-11 rounded-full px-6 text-sm font-semibold transition-transform duration-200 motion-safe:hover:-translate-y-px"
           >
-            {isSubmitting ? "Preparing Request..." : "Schedule Demo Drive"}
+            {isSubmitting ? "Saving Request..." : "Schedule Demo Drive"}
           </Button>
           <Button
             type="button"
@@ -519,7 +534,7 @@ export function DemoDriveForm({ vehicle }: DemoDriveFormProps) {
 
         <div className="rounded-[1.25rem] border border-black/6 bg-neutral-50 px-4 py-3 text-sm leading-6 text-neutral-600">
           Draft details save automatically on this device for {vehicle.name} and
-          clear after a successful mock submission.
+          clear after a successful saved request.
         </div>
       </form>
     </aside>

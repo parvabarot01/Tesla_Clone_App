@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Vehicle {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  name          String
+  category      String
+  tagline       String
+  image         String
+  range         String
+  topSpeed      String
+  acceleration  String
+  startingPrice Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Order {
+  id            String   @id @default(cuid())
+  vehicleSlug   String
+  vehicleName   String
+  paintId       String
+  wheelId       String
+  interiorId    String
+  basePrice     Int
+  paintPrice    Int
+  wheelPrice    Int
+  interiorPrice Int
+  totalPrice    Int
+  submittedAt   DateTime
+  createdAt     DateTime @default(now())
+}
+
+model DemoDriveRequest {
+  id                String   @id @default(cuid())
+  referenceId       String   @unique
+  vehicleSlug       String
+  vehicleName       String
+  fullName          String
+  email             String
+  phone             String
+  location          String
+  preferredDate     String
+  preferredTimeSlot String
+  submittedAt       DateTime
+  createdAt         DateTime @default(now())
+}

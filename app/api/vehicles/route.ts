@@ -2,16 +2,16 @@ import {
   createApiErrorResponse,
   createApiSuccessResponse,
 } from "@/lib/api";
-import { vehicleService } from "@/services/vehicleService";
+import { getVehiclesFromDatabase } from "@/lib/vehicleQueries";
 
 export async function GET() {
   try {
-    const vehicles = await vehicleService.getVehicles({ source: "local" });
+    const vehicles = await getVehiclesFromDatabase();
 
     return createApiSuccessResponse(vehicles);
   } catch {
     return createApiErrorResponse(
-      "INTERNAL_SERVER_ERROR",
+      "VEHICLE_FETCH_FAILED",
       "Unable to load vehicles right now.",
       { status: 500 }
     );

@@ -46,6 +46,10 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-export function readString(value: unknown) {
-  return typeof value === "string" ? value : "";
+export function readRecord(value: unknown) {
+  return isRecord(value) ? value : {};
+}
+
+export function readString(value: unknown, fallback = "") {
+  return typeof value === "string" ? value : fallback;
 }

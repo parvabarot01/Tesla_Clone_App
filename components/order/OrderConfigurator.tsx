@@ -32,10 +32,15 @@ import {
   submitOrderPayload,
   validateOrderSelection,
 } from "@/lib/order";
-import { getBuildStorageKey, safeLocalStorageGet, safeLocalStorageSet } from "@/lib/storage";
+import {
+  getBuildStorageKey,
+  safeLocalStorageGet,
+  safeLocalStorageRemove,
+  safeLocalStorageSet,
+} from "@/lib/storage";
 import { cn } from "@/lib/utils";
 import type {
-  OrderPayload,
+  OrderConfirmation,
   OrderSelection,
   OrderValidationError,
   PersistedBuildSelection,
@@ -179,7 +184,7 @@ type OrderFeedbackState =
   | { kind: "idle" }
   | { kind: "saved"; message: string }
   | { kind: "error"; errors: OrderValidationError[]; message: string }
-  | { kind: "success"; message: string; order: OrderPayload };
+  | { kind: "success"; message: string; order: OrderConfirmation };
 
 type PreviewMediaProps = {
   category: string;
@@ -435,10 +440,12 @@ export function OrderConfigurator({ vehicle }: OrderConfiguratorProps) {
     try {
       const result = await submitOrderPayload(payload);
 
+      safeLocalStorageRemove(buildStorageKey);
+
       setFeedback({
         kind: "success",
-        message: result.message,
-        order: result.order,
+        message: `Order saved for ${result.vehicleName}.`,
+        order: result,
       });
     } catch (error) {
       const errors =
@@ -451,7 +458,7 @@ export function OrderConfigurator({ vehicle }: OrderConfiguratorProps) {
         message:
           error instanceof ApiRequestError
             ? error.message
-            : "Unable to prepare the mock order right now.",
+            : "Unable to save the order right now.",
         errors,
       });
     } finally {
@@ -732,7 +739,7 @@ export function OrderConfigurator({ vehicle }: OrderConfiguratorProps) {
                     onClick={handleContinue}
                     className="h-11 flex-1 rounded-full px-6 text-sm font-semibold transition-transform duration-200 motion-safe:hover:-translate-y-px"
                   >
-                    {isSubmitting ? "Preparing Order..." : "Continue"}
+                    {isSubmitting ? "Saving Order..." : "Save Order"}
                   </Button>
                   <Button
                     type="button"
@@ -772,8 +779,9 @@ export function OrderConfigurator({ vehicle }: OrderConfiguratorProps) {
                     {feedback.kind === "success" ? (
                       <div className="mt-3 space-y-1 text-sm">
                         <p>
-                          Mock order prepared for {feedback.order.vehicleName} at{" "}
-                          {formatCurrency(feedback.order.pricing.totalPrice)}.
+                          Saved order {feedback.order.orderId} for{" "}
+                          {feedback.order.vehicleName} at{" "}
+                          {formatCurrency(feedback.order.totalPrice)}.
                         </p>
                         <p>
                           Selection: {selectedPaint?.label}, {selectedWheels.label},{" "}
@@ -782,7 +790,10 @@ export function OrderConfigurator({ vehicle }: OrderConfiguratorProps) {
                         <p>
                           Submitted {formatSubmittedAt(feedback.order.submittedAt)}.
                         </p>
-                        <p>Nothing was charged or stored server-side.</p>
+                        <p>
+                          Your saved local build was cleared after the order was
+                          recorded.
+                        </p>
                       </div>
                     ) : null}
                   </div>

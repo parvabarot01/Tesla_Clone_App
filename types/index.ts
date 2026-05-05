@@ -96,6 +96,15 @@ export type OrderPayload = {
   submittedAt: string;
 };
 
+export type OrderConfirmation = {
+  accepted: true;
+  orderId: string;
+  vehicleSlug: string;
+  vehicleName: string;
+  totalPrice: number;
+  submittedAt: string;
+};
+
 export type OrderValidationError = {
   field: string;
   message: string;
@@ -124,12 +133,14 @@ export type DemoDriveValidationError = {
 };
 
 export type DemoDriveConfirmation = {
-  accepted: boolean;
+  accepted: true;
   referenceId: string;
   vehicleSlug: string;
+  vehicleName: string;
   preferredDate: string;
   preferredTimeSlot: string;
   location: string;
+  submittedAt: string;
 };
 
 export type PersistedBuildSelection = {

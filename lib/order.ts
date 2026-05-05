@@ -8,6 +8,7 @@ import { API_ROUTES } from "@/constants/api";
 import { getVehicleBySlug as getLocalVehicleBySlug } from "@/data/vehicles";
 import { fetchApiJson } from "@/lib/fetcher";
 import type {
+  OrderConfirmation,
   OrderPayload,
   OrderPriceBreakdown,
   OrderSelection,
@@ -32,12 +33,6 @@ export type ValidatedOrderSelection =
       isValid: false;
       selection: OrderSelection;
     };
-
-export type OrderSubmissionResult = {
-  accepted: true;
-  message: string;
-  order: OrderPayload;
-};
 
 export function parseCurrency(value: string) {
   return Number(value.replace(/[^0-9.]+/g, ""));
@@ -68,7 +63,20 @@ export function buildOrderPriceBreakdown(
   selectedWheel: OrderOption,
   selectedInterior: OrderOption
 ): OrderPriceBreakdown {
-  const basePrice = parseCurrency(vehicle.startingPrice);
+  return buildOrderPriceBreakdownFromBasePrice(
+    parseCurrency(vehicle.startingPrice),
+    selectedPaint,
+    selectedWheel,
+    selectedInterior
+  );
+}
+
+export function buildOrderPriceBreakdownFromBasePrice(
+  basePrice: number,
+  selectedPaint: OrderOption,
+  selectedWheel: OrderOption,
+  selectedInterior: OrderOption
+): OrderPriceBreakdown {
   const paintPrice = selectedPaint.price;
   const wheelPrice = selectedWheel.price;
   const interiorPrice = selectedInterior.price;
@@ -161,7 +169,7 @@ export function createOrderPayload(
 }
 
 export async function submitOrderPayload(payload: OrderPayload) {
-  return fetchApiJson<OrderSubmissionResult>(API_ROUTES.orders, {
+  return fetchApiJson<OrderConfirmation>(API_ROUTES.orders, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
