@@ -18,7 +18,8 @@ export function mapValidatedDemoDriveToCreateInput(
   validatedForm: Extract<ValidatedDemoDriveForm, { isValid: true }>,
   dbVehicle: DbVehicle,
   referenceId: string,
-  submittedAt: string
+  submittedAt: string,
+  userId?: string | null
 ) {
   return {
     referenceId,
@@ -31,6 +32,15 @@ export function mapValidatedDemoDriveToCreateInput(
     preferredDate: validatedForm.form.preferredDate,
     preferredTimeSlot: validatedForm.form.preferredTimeSlot,
     submittedAt: parseSubmittedAt(submittedAt),
+    ...(userId
+      ? {
+          user: {
+            connect: {
+              id: userId,
+            },
+          },
+        }
+      : {}),
   } satisfies Prisma.DemoDriveRequestCreateInput;
 }
 

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { CircleHelp, Globe, UserCircle, X } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
+import { SignOutButton } from "@/components/auth/SignOutButton";
 import type { NavItem } from "@/types";
 import { ROUTES } from "@/constants/routes";
 import {
@@ -16,19 +17,19 @@ import {
 } from "@/lib/motion";
 
 type MobileMenuProps = {
+  accountHref: string;
+  accountLabel: string;
+  authenticated: boolean;
   isOpen: boolean;
   navItems: NavItem[];
   onClose: () => void;
   panelId: string;
 };
 
-const utilityActions = [
-  { label: "Help", icon: CircleHelp },
-  { label: "Language", icon: Globe },
-  { label: "Account", icon: UserCircle },
-];
-
 export function MobileMenu({
+  accountHref,
+  accountLabel,
+  authenticated,
   isOpen,
   navItems,
   onClose,
@@ -110,22 +111,43 @@ export function MobileMenu({
 
             <div className="border-t border-black/6 px-4 py-4">
               <div className="grid grid-cols-3 gap-2">
-                {utilityActions.map((action) => {
-                  const Icon = action.icon;
-
-                  return (
-                    <button
-                      key={action.label}
-                      type="button"
-                      aria-label={action.label}
-                      className="flex flex-col items-center gap-2 rounded-[1.15rem] border border-black/6 bg-white px-3 py-3 text-xs font-medium text-neutral-700 transition-[background-color,border-color,color,transform] duration-200 hover:border-black/10 hover:bg-neutral-50 hover:text-neutral-950 motion-safe:hover:-translate-y-px"
-                    >
-                      <Icon className="h-4 w-4" />
-                      <span>{action.label}</span>
-                    </button>
-                  );
-                })}
+                <button
+                  type="button"
+                  aria-label="Help"
+                  className="flex flex-col items-center gap-2 rounded-[1.15rem] border border-black/6 bg-white px-3 py-3 text-xs font-medium text-neutral-700 transition-[background-color,border-color,color,transform] duration-200 hover:border-black/10 hover:bg-neutral-50 hover:text-neutral-950 motion-safe:hover:-translate-y-px"
+                >
+                  <CircleHelp className="h-4 w-4" />
+                  <span>Help</span>
+                </button>
+                <button
+                  type="button"
+                  aria-label="Language"
+                  className="flex flex-col items-center gap-2 rounded-[1.15rem] border border-black/6 bg-white px-3 py-3 text-xs font-medium text-neutral-700 transition-[background-color,border-color,color,transform] duration-200 hover:border-black/10 hover:bg-neutral-50 hover:text-neutral-950 motion-safe:hover:-translate-y-px"
+                >
+                  <Globe className="h-4 w-4" />
+                  <span>Language</span>
+                </button>
+                <Link
+                  href={accountHref}
+                  onClick={onClose}
+                  className="flex flex-col items-center gap-2 rounded-[1.15rem] border border-black/6 bg-white px-3 py-3 text-xs font-medium text-neutral-700 transition-[background-color,border-color,color,transform] duration-200 hover:border-black/10 hover:bg-neutral-50 hover:text-neutral-950 motion-safe:hover:-translate-y-px"
+                >
+                  <UserCircle className="h-4 w-4" />
+                  <span>{accountLabel}</span>
+                </Link>
               </div>
+              {authenticated ? (
+                <div className="mt-3">
+                  <SignOutButton
+                    callbackUrl={ROUTES.home}
+                    size="lg"
+                    variant="outline"
+                    className="h-11 w-full rounded-full border-black/8 px-4 text-sm font-semibold text-neutral-900 transition-[background-color,border-color,transform] duration-200 hover:bg-neutral-50 motion-safe:hover:-translate-y-px"
+                  >
+                    Sign Out
+                  </SignOutButton>
+                </div>
+              ) : null}
             </div>
           </motion.aside>
         </>

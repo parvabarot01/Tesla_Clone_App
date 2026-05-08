@@ -13,6 +13,7 @@ import {
   mapPersistedDemoDriveToConfirmation,
   mapValidatedDemoDriveToCreateInput,
 } from "@/lib/demoDriveMappers";
+import { getCurrentAuthUserId } from "@/lib/auth";
 import { getPrismaClient } from "@/lib/prisma";
 import type { DemoDriveFormValues } from "@/types";
 
@@ -74,6 +75,7 @@ export async function POST(request: Request) {
 
   try {
     const prisma = getPrismaClient();
+    const currentUserId = await getCurrentAuthUserId();
     const vehicle = await prisma.vehicle.findUnique({
       where: {
         slug: validation.form.vehicleSlug,
@@ -93,7 +95,8 @@ export async function POST(request: Request) {
         validation,
         vehicle,
         referenceId,
-        submittedAt
+        submittedAt,
+        currentUserId
       ),
     });
 

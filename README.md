@@ -2,11 +2,11 @@
 
 Tesla-inspired clone app built with Next.js App Router, TypeScript, Tailwind CSS, shadcn/ui, Lucide React, and Framer Motion.
 
-The UI and core product flows are complete through V0.5. V0.6 is moving the app from mock-only backend behavior into real PostgreSQL-backed persistence with Prisma while keeping the current frontend behavior and routes intact. This project still does not include authentication, payments, deployment, or real Tesla copyrighted images.
+The UI and core product flows are complete through V0.7, including a lightweight authenticated account area layered on top of the persisted order and demo-drive flows. This project still does not include payments, deployment, or real Tesla copyrighted images.
 
 ## Current Version
 
-- V0.6
+- V0.7
 
 ## Progress
 
@@ -37,6 +37,14 @@ V0.6:
 - Core product flows now save real records
 - Backend cleanup and readiness pass
 
+V0.7:
+- Authentication foundation and session handling
+- User ownership links for persisted records
+- Protected dashboard shell
+- Orders history for authenticated users
+- Demo-drive history for authenticated users
+- Final auth and dashboard cleanup
+
 ## Local Setup
 
 ```bash
@@ -62,6 +70,7 @@ npm run dev
 ```
 
 Vehicles must be seeded for the catalog pages to show data. Order submissions and demo-drive requests are stored in the database once submitted.
+The current local sign-in flow does not require additional OAuth provider environment variables.
 
 ## Available Scripts
 
@@ -74,11 +83,10 @@ Vehicles must be seeded for the catalog pages to show data. Order submissions an
 
 ## Next Major Version
 
-- V0.7: Auth + User Dashboard foundation
+- V0.8: Payments + Admin foundation
 
 ## Roadmap
 
-- V0.7: Auth + User Dashboard
 - V0.8: Payments + Admin
 - V1: Production hardening, testing, deployment
 
@@ -88,4 +96,4 @@ This is a Tesla-inspired educational project and is not affiliated with Tesla.
 
 ## Development Notes
 
-V0.6 completed the first real backend/data layer and prepared the app for account-based features next.
+V0.7 completes the first account-based layer on top of the real backend and persisted data foundation.

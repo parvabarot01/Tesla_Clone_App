@@ -20,7 +20,8 @@ function parseSubmittedAt(submittedAt: string) {
 export function mapValidatedOrderToCreateInput(
   validatedSelection: Extract<ValidatedOrderSelection, { isValid: true }>,
   dbVehicle: DbVehicle,
-  submittedAt: string
+  submittedAt: string,
+  userId?: string | null
 ) {
   const pricing = buildOrderPriceBreakdownFromBasePrice(
     dbVehicle.startingPrice,
@@ -41,6 +42,15 @@ export function mapValidatedOrderToCreateInput(
     interiorPrice: pricing.interiorPrice,
     totalPrice: pricing.totalPrice,
     submittedAt: parseSubmittedAt(submittedAt),
+    ...(userId
+      ? {
+          user: {
+            connect: {
+              id: userId,
+            },
+          },
+        }
+      : {}),
   } satisfies Prisma.OrderCreateInput;
 }
 

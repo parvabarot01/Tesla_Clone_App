@@ -3,4 +3,5 @@ export const API_ROUTES = {
   vehicleBySlug: (slug: string) => `/api/vehicles/${slug}`,
   orders: "/api/orders",
   demoDrive: "/api/demo-drive",
+  session: "/api/session",
 } as const;

@@ -9,6 +9,7 @@ import {
   mapPersistedOrderToConfirmation,
   mapValidatedOrderToCreateInput,
 } from "@/lib/orderMappers";
+import { getCurrentAuthUserId } from "@/lib/auth";
 import { getPrismaClient } from "@/lib/prisma";
 import { validateOrderSelection } from "@/lib/order";
 import type { OrderSelection } from "@/types";
@@ -65,6 +66,7 @@ export async function POST(request: Request) {
 
   try {
     const prisma = getPrismaClient();
+    const currentUserId = await getCurrentAuthUserId();
     const vehicle = await prisma.vehicle.findUnique({
       where: {
         slug: validation.selection.vehicleSlug,
@@ -80,7 +82,12 @@ export async function POST(request: Request) {
     }
 
     const persistedOrder = await prisma.order.create({
-      data: mapValidatedOrderToCreateInput(validation, vehicle, submittedAt),
+      data: mapValidatedOrderToCreateInput(
+        validation,
+        vehicle,
+        submittedAt,
+        currentUserId
+      ),
     });
 
     return createApiSuccessResponse(
