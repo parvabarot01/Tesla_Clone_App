@@ -10,6 +10,7 @@ import { Reveal } from "@/components/shared/Reveal";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { ButtonLink } from "@/components/ui/button-link";
 import { ROUTES } from "@/constants/routes";
+import { isAdminUser } from "@/lib/admin";
 import type {
   DashboardDemoDriveHistoryItem,
   DashboardOrderHistoryItem,
@@ -32,6 +33,7 @@ export function DashboardShell({
   orders,
   user,
 }: DashboardShellProps) {
+  const adminUser = isAdminUser(user);
   const demoDriveCount = demoDriveRequests.length;
   const displayName = getDisplayName(user);
   const ordersCount = orders.length;
@@ -104,6 +106,16 @@ export function DashboardShell({
                   >
                     Browse Vehicles
                   </ButtonLink>
+                  {adminUser ? (
+                    <ButtonLink
+                      href={ROUTES.admin}
+                      size="lg"
+                      variant="outline"
+                      className="h-11 rounded-full px-6 text-sm font-semibold transition-[background-color,border-color,transform] duration-200 motion-safe:hover:-translate-y-px"
+                    >
+                      Admin Dashboard
+                    </ButtonLink>
+                  ) : null}
                   <SignOutButton
                     callbackUrl={ROUTES.home}
                     size="lg"

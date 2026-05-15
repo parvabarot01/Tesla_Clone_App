@@ -18,7 +18,7 @@ export const authSessionCookieNames = [
 
 const authSessionMaxAgeMs = 1000 * 60 * 60 * 24 * 30;
 
-export type AuthenticatedUser = Pick<User, "id" | "email" | "name">;
+export type AuthenticatedUser = Pick<User, "id" | "email" | "name" | "role">;
 
 export type AuthenticatedSession = {
   expires: Date;
@@ -105,6 +105,7 @@ export async function getCurrentAuthSession(): Promise<AuthenticatedSession | nu
             id: true,
             email: true,
             name: true,
+            role: true,
           },
         },
       },
@@ -136,6 +137,12 @@ export async function getCurrentAuthUserEmail() {
   const user = await getCurrentAuthUser();
 
   return user?.email ?? null;
+}
+
+export async function getCurrentAuthUserRole() {
+  const user = await getCurrentAuthUser();
+
+  return user?.role ?? null;
 }
 
 export async function requireAuthenticatedUser(
@@ -210,6 +217,7 @@ export async function createUserSession({
       email: user.email,
       id: user.id,
       name: user.name,
+      role: user.role,
     } satisfies AuthenticatedUser,
   };
 }

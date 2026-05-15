@@ -3,6 +3,7 @@ export {
   getCurrentAuthUser,
   getCurrentAuthUserEmail,
   getCurrentAuthUserId,
+  getCurrentAuthUserRole,
   requireAuthenticatedUser,
   resolveSafeAuthRedirectPath,
   type AuthenticatedUser,

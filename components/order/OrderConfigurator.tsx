@@ -32,6 +32,7 @@ import {
   submitOrderPayload,
   validateOrderSelection,
 } from "@/lib/order";
+import { formatPaymentStatus } from "@/lib/payment";
 import {
   getBuildStorageKey,
   safeLocalStorageGet,
@@ -784,6 +785,10 @@ export function OrderConfigurator({ vehicle }: OrderConfiguratorProps) {
                           {formatCurrency(feedback.order.totalPrice)}.
                         </p>
                         <p>
+                          Payment status:{" "}
+                          {formatPaymentStatus(feedback.order.paymentStatus)}.
+                        </p>
+                        <p>
                           Selection: {selectedPaint?.label}, {selectedWheels.label},{" "}
                           {selectedInterior.label}.
                         </p>
@@ -794,6 +799,15 @@ export function OrderConfigurator({ vehicle }: OrderConfiguratorProps) {
                           Your saved local build was cleared after the order was
                           recorded.
                         </p>
+                        <div className="mt-4">
+                          <ButtonLink
+                            href={ROUTES.checkout(feedback.order.orderId)}
+                            size="lg"
+                            className="h-11 rounded-full px-6 text-sm font-semibold transition-transform duration-200 motion-safe:hover:-translate-y-px"
+                          >
+                            Continue to Checkout
+                          </ButtonLink>
+                        </div>
                       </div>
                     ) : null}
                   </div>

@@ -6,7 +6,7 @@ The UI and core product flows are complete through V0.7, including a lightweight
 
 ## Current Version
 
-- V0.7
+- V0.8 (In Progress)
 
 ## Progress
 
@@ -45,6 +45,13 @@ V0.7:
 - Demo-drive history for authenticated users
 - Final auth and dashboard cleanup
 
+V0.8:
+- Mock payment foundation
+- Mock payment flow integration
+- Protected admin shell
+- Admin data views for orders, demo-drive requests, and vehicles
+- Internal operational visibility foundation
+
 ## Local Setup
 
 ```bash
@@ -59,7 +66,7 @@ npm install
 
 ```bash
 npx prisma generate
-npx prisma migrate dev --name init
+npx prisma migrate dev --name v0_8_admin_shell_foundation
 npx prisma db seed
 ```
 
@@ -72,6 +79,11 @@ npm run dev
 Vehicles must be seeded for the catalog pages to show data. Order submissions and demo-drive requests are stored in the database once submitted.
 The current local sign-in flow does not require additional OAuth provider environment variables.
 
+## Local Admin Access
+
+- Sign in once to create your user record.
+- Update that user's `role` to `ADMIN` in PostgreSQL or Prisma Studio.
+
 ## Available Scripts
 
 - `npm run dev` - start the development server
@@ -81,13 +93,9 @@ The current local sign-in flow does not require additional OAuth provider enviro
 - `npm run prisma:migrate` - create and apply a development migration
 - `npm run prisma:seed` - seed the vehicle catalog
 
-## Next Major Version
-
-- V0.8: Payments + Admin foundation
-
 ## Roadmap
 
-- V0.8: Payments + Admin
+- Phase 5: Final V0.8 cleanup
 - V1: Production hardening, testing, deployment
 
 ## Disclaimer
@@ -96,4 +104,4 @@ This is a Tesla-inspired educational project and is not affiliated with Tesla.
 
 ## Development Notes
 
-V0.7 completes the first account-based layer on top of the real backend and persisted data foundation.
+V0.8 adds internal management visibility on top of the account, payment-status, and admin access foundations.

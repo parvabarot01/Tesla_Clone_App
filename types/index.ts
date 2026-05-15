@@ -88,6 +88,18 @@ export type OrderPriceBreakdown = {
   totalPrice: number;
 };
 
+export type UserRole = "USER" | "ADMIN";
+
+export type PaymentStatus = "PENDING" | "PAID" | "FAILED" | "CANCELLED";
+
+export type MockPaymentResultStatus = Exclude<PaymentStatus, "PENDING">;
+
+export type MockPaymentMethod =
+  | "CREDIT_CARD"
+  | "DEBIT_CARD"
+  | "UPI"
+  | "NET_BANKING";
+
 export type OrderPayload = {
   vehicleSlug: string;
   vehicleName: string;
@@ -99,10 +111,29 @@ export type OrderPayload = {
 export type OrderConfirmation = {
   accepted: true;
   orderId: string;
+  paymentStatus: PaymentStatus;
   vehicleSlug: string;
   vehicleName: string;
   totalPrice: number;
   submittedAt: string;
+};
+
+export type PaymentUpdatePayload = {
+  orderId: string;
+  paymentMethod: MockPaymentMethod;
+  paymentReference?: string;
+  paidAt?: string;
+  paymentStatus: MockPaymentResultStatus;
+};
+
+export type PaymentConfirmation = {
+  accepted: true;
+  orderId: string;
+  paymentMethod?: MockPaymentMethod;
+  paymentReference?: string;
+  paidAt?: string;
+  paymentStatus: PaymentStatus;
+  vehicleName: string;
 };
 
 export type OrderValidationError = {

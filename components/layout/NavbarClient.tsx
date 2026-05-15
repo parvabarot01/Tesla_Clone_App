@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Menu, X, CircleHelp, Globe, UserCircle } from "lucide-react";
+import { Menu, X, CircleHelp, Globe, Shield, UserCircle } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
@@ -14,12 +14,14 @@ import { cn } from "@/lib/utils";
 type NavbarClientProps = {
   accountHref: string;
   accountLabel: string;
+  adminHref?: string;
   authenticated: boolean;
 };
 
 export function NavbarClient({
   accountHref,
   accountLabel,
+  adminHref,
   authenticated,
 }: NavbarClientProps) {
   const [hasScrolled, setHasScrolled] = useState(false);
@@ -176,6 +178,15 @@ export function NavbarClient({
               <UserCircle className="h-4 w-4" />
               <span>{accountLabel}</span>
             </Link>
+            {adminHref ? (
+              <Link
+                href={adminHref}
+                className="inline-flex items-center gap-2 rounded-full border border-black/8 bg-white/80 px-4 py-2 text-sm font-medium text-neutral-800 transition-[background-color,border-color,color,transform] duration-200 hover:border-black/12 hover:bg-black/5 hover:text-black motion-safe:hover:-translate-y-px"
+              >
+                <Shield className="h-4 w-4" />
+                <span>Admin</span>
+              </Link>
+            ) : null}
             {authenticated ? (
               <SignOutButton
                 callbackUrl={ROUTES.home}
@@ -192,6 +203,7 @@ export function NavbarClient({
       <MobileMenu
         accountHref={accountHref}
         accountLabel={accountLabel}
+        adminHref={adminHref}
         authenticated={authenticated}
         isOpen={isMobileMenuOpen}
         navItems={siteConfig.navItems}

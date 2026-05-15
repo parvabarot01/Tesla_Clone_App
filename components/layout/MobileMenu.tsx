@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CircleHelp, Globe, UserCircle, X } from "lucide-react";
+import { CircleHelp, Globe, Shield, UserCircle, X } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
 import { SignOutButton } from "@/components/auth/SignOutButton";
@@ -19,6 +19,7 @@ import {
 type MobileMenuProps = {
   accountHref: string;
   accountLabel: string;
+  adminHref?: string;
   authenticated: boolean;
   isOpen: boolean;
   navItems: NavItem[];
@@ -29,6 +30,7 @@ type MobileMenuProps = {
 export function MobileMenu({
   accountHref,
   accountLabel,
+  adminHref,
   authenticated,
   isOpen,
   navItems,
@@ -110,7 +112,11 @@ export function MobileMenu({
             </motion.nav>
 
             <div className="border-t border-black/6 px-4 py-4">
-              <div className="grid grid-cols-3 gap-2">
+              <div
+                className={`grid gap-2 ${
+                  adminHref ? "grid-cols-4" : "grid-cols-3"
+                }`}
+              >
                 <button
                   type="button"
                   aria-label="Help"
@@ -135,6 +141,16 @@ export function MobileMenu({
                   <UserCircle className="h-4 w-4" />
                   <span>{accountLabel}</span>
                 </Link>
+                {adminHref ? (
+                  <Link
+                    href={adminHref}
+                    onClick={onClose}
+                    className="flex flex-col items-center gap-2 rounded-[1.15rem] border border-black/6 bg-white px-3 py-3 text-xs font-medium text-neutral-700 transition-[background-color,border-color,color,transform] duration-200 hover:border-black/10 hover:bg-neutral-50 hover:text-neutral-950 motion-safe:hover:-translate-y-px"
+                  >
+                    <Shield className="h-4 w-4" />
+                    <span>Admin</span>
+                  </Link>
+                ) : null}
               </div>
               {authenticated ? (
                 <div className="mt-3">

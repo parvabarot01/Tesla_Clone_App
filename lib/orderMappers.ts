@@ -9,6 +9,7 @@ import {
   buildOrderPriceBreakdownFromBasePrice,
   type ValidatedOrderSelection,
 } from "@/lib/order";
+import { getPaymentStatusValue } from "@/lib/payment";
 import type { OrderConfirmation } from "@/types";
 
 function parseSubmittedAt(submittedAt: string) {
@@ -60,6 +61,7 @@ export function mapPersistedOrderToConfirmation(
   return {
     accepted: true,
     orderId: order.id,
+    paymentStatus: getPaymentStatusValue(order.paymentStatus),
     vehicleSlug: order.vehicleSlug,
     vehicleName: order.vehicleName,
     totalPrice: order.totalPrice,

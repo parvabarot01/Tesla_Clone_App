@@ -1,17 +1,15 @@
 import "server-only";
 
-import {
-  getPaintOptionsForVehicle,
-  interiorOptions,
-  wheelOptions,
-  type OrderOption,
-} from "@/constants/orderOptions";
+import { getOrderSelectionDetails } from "@/lib/orders";
+import { formatMockPaymentMethod, formatPaymentStatus } from "@/lib/payment";
 import { getPrismaClient } from "@/lib/prisma";
 
 type DashboardOrderRecord = {
   id: string;
   interiorId: string;
   paintId: string;
+  paymentMethod: string | null;
+  paymentStatus: string;
   submittedAt: Date;
   totalPrice: number;
   vehicleName: string;
@@ -34,6 +32,9 @@ export type DashboardOrderHistoryItem = {
   id: string;
   interiorLabel: string;
   paintLabel: string;
+  paymentMethodLabel: string | null;
+  paymentStatus: string;
+  paymentStatusLabel: string;
   shortId: string;
   submittedAtFormatted: string;
   totalPriceFormatted: string;
@@ -91,34 +92,24 @@ function formatCurrency(value: number) {
   return currencyFormatter.format(value);
 }
 
-function formatFallbackLabel(value: string) {
-  return value
-    .split("-")
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-}
-
-function findOptionLabel(options: OrderOption[], optionId: string) {
-  return (
-    options.find((option) => option.id === optionId)?.label ??
-    formatFallbackLabel(optionId)
-  );
-}
-
 function mapOrderRecord(order: DashboardOrderRecord): DashboardOrderHistoryItem {
-  const paintOptions = getPaintOptionsForVehicle(order.vehicleSlug);
+  const selectionDetails = getOrderSelectionDetails(order);
 
   return {
     id: order.id,
-    interiorLabel: findOptionLabel(interiorOptions, order.interiorId),
-    paintLabel: findOptionLabel(paintOptions, order.paintId),
+    interiorLabel: selectionDetails.interiorLabel,
+    paintLabel: selectionDetails.paintLabel,
+    paymentMethodLabel: order.paymentMethod
+      ? formatMockPaymentMethod(order.paymentMethod)
+      : null,
+    paymentStatus: order.paymentStatus,
+    paymentStatusLabel: formatPaymentStatus(order.paymentStatus),
     shortId: order.id.slice(0, 8).toUpperCase(),
     submittedAtFormatted: formatSubmittedAt(order.submittedAt),
     totalPriceFormatted: formatCurrency(order.totalPrice),
     vehicleName: order.vehicleName,
     vehicleSlug: order.vehicleSlug,
-    wheelLabel: findOptionLabel(wheelOptions, order.wheelId),
+    wheelLabel: selectionDetails.wheelLabel,
   };
 }
 
@@ -152,6 +143,8 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
         id: true,
         interiorId: true,
         paintId: true,
+        paymentMethod: true,
+        paymentStatus: true,
         submittedAt: true,
         totalPrice: true,
         vehicleName: true,

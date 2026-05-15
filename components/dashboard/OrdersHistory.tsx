@@ -3,10 +3,39 @@ import { ArrowUpRight, CircleDot, Palette, Sofa, Sparkles } from "lucide-react";
 import type { DashboardOrderHistoryItem } from "@/lib/dashboard";
 import { ButtonLink } from "@/components/ui/button-link";
 import { ROUTES } from "@/constants/routes";
+import { getPaymentStatusValue } from "@/lib/payment";
 
 type OrdersHistoryProps = {
   orders: DashboardOrderHistoryItem[];
 };
+
+function getPaymentStatusClasses(paymentStatus: string) {
+  switch (getPaymentStatusValue(paymentStatus)) {
+    case "PAID":
+      return "border-emerald-200 bg-emerald-50 text-emerald-900";
+    case "FAILED":
+      return "border-rose-200 bg-rose-50 text-rose-900";
+    case "CANCELLED":
+      return "border-neutral-200 bg-neutral-100 text-neutral-700";
+    case "PENDING":
+    default:
+      return "border-amber-200 bg-amber-50 text-amber-900";
+  }
+}
+
+function getCheckoutActionLabel(paymentStatus: string) {
+  switch (getPaymentStatusValue(paymentStatus)) {
+    case "FAILED":
+      return "Retry Payment";
+    case "PAID":
+      return "View Checkout";
+    case "CANCELLED":
+      return "Review Checkout";
+    case "PENDING":
+    default:
+      return "Go to Checkout";
+  }
+}
 
 export function OrdersHistory({ orders }: OrdersHistoryProps) {
   return (
@@ -71,6 +100,20 @@ export function OrdersHistory({ orders }: OrdersHistoryProps) {
                   <p className="mt-2 text-sm leading-6 text-neutral-600">
                     Submitted {order.submittedAtFormatted}
                   </p>
+                  <div className="mt-3">
+                    <div className="flex flex-wrap gap-2">
+                      <span
+                        className={`inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] ${getPaymentStatusClasses(order.paymentStatus)}`}
+                      >
+                        {order.paymentStatusLabel}
+                      </span>
+                      {order.paymentMethodLabel ? (
+                        <span className="inline-flex rounded-full border border-black/8 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-600">
+                          {order.paymentMethodLabel}
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
                 </div>
 
                 <div className="rounded-[1.4rem] border border-black/8 bg-white px-4 py-3 shadow-[0_12px_30px_rgba(17,17,17,0.05)]">
@@ -126,15 +169,25 @@ export function OrdersHistory({ orders }: OrdersHistoryProps) {
                   </span>
                 </div>
 
-                <ButtonLink
-                  href={ROUTES.order(order.vehicleSlug)}
-                  size="lg"
-                  variant="outline"
-                  className="h-11 rounded-full px-6 text-sm font-semibold transition-[background-color,border-color,transform] duration-200 motion-safe:hover:-translate-y-px"
-                >
-                  Configure Again
-                  <ArrowUpRight className="h-4 w-4" />
-                </ButtonLink>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <ButtonLink
+                    href={ROUTES.checkout(order.id)}
+                    size="lg"
+                    className="h-11 rounded-full px-6 text-sm font-semibold transition-[background-color,transform] duration-200 motion-safe:hover:-translate-y-px"
+                  >
+                    {getCheckoutActionLabel(order.paymentStatus)}
+                    <ArrowUpRight className="h-4 w-4" />
+                  </ButtonLink>
+                  <ButtonLink
+                    href={ROUTES.order(order.vehicleSlug)}
+                    size="lg"
+                    variant="outline"
+                    className="h-11 rounded-full px-6 text-sm font-semibold transition-[background-color,border-color,transform] duration-200 motion-safe:hover:-translate-y-px"
+                  >
+                    Configure Again
+                    <ArrowUpRight className="h-4 w-4" />
+                  </ButtonLink>
+                </div>
               </div>
             </section>
           ))}
